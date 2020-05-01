@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "219312641345",
+    "firebase_url": "https://yoongikoon.firebaseio.com",
+    "project_id": "yoongikoon",
+    "storage_bucket": "yoongikoon.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:219312641345:android:6b210c493d5acda204bdc0",
+        "android_client_info": {
+          "package_name": "com.yoongi.ggmoney"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "219312641345-54ic2qo08alkpdb62mdbh2aacroqj0u2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.yoongi.ggmoney",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "219312641345-cl2ncbdqdrrfr75rd5ir3legq89vtbqc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC1Xc2D_MK7dPCgtEa2TUZqcnIGiKWbe-g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "219312641345-cl2ncbdqdrrfr75rd5ir3legq89vtbqc.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "219312641345-9k46fgp9up015q6i0d74jta4vfucj6pg.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "org.reactjs.native.example.ggmoney"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
