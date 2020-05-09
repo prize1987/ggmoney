@@ -6,35 +6,33 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   FlatList,
-  Alert,
 } from 'react-native';
-import {Item, Label, Input, Icon, ListItem} from 'native-base';
-import CustomButton from './CustomButton';
-import GGDB from './Database';
+import {Item, Label, Input, Icon, ListItem, CheckBox} from 'native-base';
 import ApiMain from './ApiMain';
 import Toast from 'react-native-root-toast';
 
-class MainScreen extends React.Component {
-  static defaultProps = {numToRender: 20};
+class ApiSearchScreen extends React.Component {
+  static defaultProps = {numToRender: 50};
   state = {
-    searchCon: '',
-    db: null,
+    searchConName: '',
+    searchConAddr: '',
+    addrType: '',
     api: null,
     data: [],
     fetchCnt: 0,
     totalCnt: 0,
-    isLoaded: false,
+    nextIndex: 1,
+    mode: 'start',
   };
 
   constructor(props) {
     super(props);
 
-    this.state.db = new GGDB();
-    this.state.api = new ApiMain(this.state.db);
+    this.state.api = new ApiMain();
   }
 
   componentDidMount() {
-    this.getInitData();
+    // this.getInitData();
     // console.log(this.props.numToRender);
   }
 
@@ -50,13 +48,32 @@ class MainScreen extends React.Component {
 
   async getInitData() {
     const {numToRender} = this.props;
-    const {searchCon, db} = this.state;
-    console.log(searchCon);
+    const {searchConName, searchConAddr, api} = this.state;
 
-    this.setState({isLoaded: false});
+    this.setState({mode: 'loading'});
 
-    let totalCnt = await db.selectGgmoneyCnt(searchCon);
-    let recvData = await db.selectGgmoney(searchCon, 0, numToRender);
+    let addrType = 'lotno';
+    let totalCnt = await api.searchApiDataCount(
+      searchConName,
+      searchConAddr,
+      addrType,
+    );
+    if (totalCnt === 0) {
+      addrType = 'road';
+      totalCnt = await api.searchApiDataCount(
+        searchConName,
+        searchConAddr,
+        addrType,
+      );
+    }
+
+    let recvData = await api.searchApiData(
+      1,
+      numToRender,
+      searchConName,
+      searchConAddr,
+      addrType,
+    );
 
     this.showToast(
       totalCnt + '건 조회',
@@ -66,22 +83,40 @@ class MainScreen extends React.Component {
 
     this.setState({
       data: recvData,
-      fetchCnt: recvData.length,
+      fetchCnt: recvData ? recvData.length : 0,
       totalCnt: totalCnt,
-      isLoaded: true,
+      addrType: addrType,
+      nextIndex: 2,
+      mode: 'loaded',
     });
   }
   async getMoreData() {
     const {numToRender} = this.props;
-    const {searchCon, data, fetchCnt, db} = this.state;
+    const {
+      searchConName,
+      searchConAddr,
+      addrType,
+      data,
+      fetchCnt,
+      nextIndex,
+      api,
+    } = this.state;
 
-    let recvData = await db.selectGgmoney(searchCon, fetchCnt, numToRender);
+    let recvData = await api.searchApiData(
+      nextIndex,
+      numToRender,
+      searchConName,
+      searchConAddr,
+      addrType,
+    );
 
-    this.setState({
-      data: [...data, ...recvData],
-      fetchCnt: fetchCnt + recvData.length,
-      // isLoaded: true,
-    });
+    if (recvData !== null) {
+      this.setState({
+        data: [...data, ...recvData],
+        fetchCnt: fetchCnt + recvData.length,
+        nextIndex: nextIndex + 1,
+      });
+    }
   }
 
   onEndReached = () => {
@@ -93,7 +128,7 @@ class MainScreen extends React.Component {
   };
   render() {
     const {numToRender} = this.props;
-    const {data, isLoaded, fetchCnt, totalCnt} = this.state;
+    const {data, mode} = this.state;
 
     return (
       <>
@@ -103,24 +138,32 @@ class MainScreen extends React.Component {
               <Icon style={styles.icon} name="search" />
             </Label>
             <Input
-              placeholder="키워드 검색 (띄어쓰기로 구분)"
+              placeholder="상호명"
               onChangeText={text => {
-                this.setState({searchCon: text});
+                this.setState({searchConName: text});
               }}
               onSubmitEditing={() => this.getInitData()}
+              returnKeyType="search"
             />
           </Item>
-          <CustomButton
-            title="검색"
-            titleColor="white"
-            buttonColor="#2788e5"
-            onPress={() => this.getInitData()}
-          />
+          <Item style={styles.textInput} inlineLabel>
+            <Label>
+              <Icon style={styles.icon} name="search" />
+            </Label>
+            <Input
+              placeholder="주소"
+              onChangeText={text => {
+                this.setState({searchConAddr: text});
+              }}
+              onSubmitEditing={() => this.getInitData()}
+              returnKeyType="search"
+            />
+          </Item>
         </View>
         <View style={styles.listContainer}>
-          {isLoaded ? (
+          {mode === 'loaded' ? (
             <FlatList
-              style={styles.container}
+              style={styles.list}
               data={data}
               initialNumToRender={numToRender}
               onEndReachedThreshold={1}
@@ -130,7 +173,6 @@ class MainScreen extends React.Component {
                   <ListItem style={{flex: 1}}>
                     <TouchableOpacity style={styles.itemArea}>
                       <Text style={styles.itemTitle}>{item.CMPNM_NM}</Text>
-                      <Text style={styles.itemSub}>{item.INDUTYPE_NM}</Text>
                       <Text style={styles.itemSub}>
                         {item.REFINE_LOTNO_ADDR}
                       </Text>
@@ -138,14 +180,15 @@ class MainScreen extends React.Component {
                         {item.REFINE_ROADNM_ADDR}
                       </Text>
                       <Text style={styles.itemSub}>{item.TELNO}</Text>
-                      {/* <Text>{this.state.fetchCnt}</Text> */}
                     </TouchableOpacity>
                   </ListItem>
                 );
               }}
             />
-          ) : (
+          ) : mode === 'loading' ? (
             <ActivityIndicator size={50} style={{marginTop: 50}} />
+          ) : (
+            <Text>검색어를 입력해주세요.</Text>
           )}
         </View>
       </>
@@ -161,7 +204,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     // alignItems:''
     flexDirection: 'row',
-    // paddingHorizontal: 10,
+    paddingHorizontal: 10,
     // paddingVertical: 10,
   },
   textInput: {
@@ -182,6 +225,9 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#595959',
   },
+  itemArea: {
+    flex: 1,
+  },
   icon: {
     fontSize: 24,
     color: 'gray',
@@ -197,9 +243,16 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     flex: 1,
-    alignContent: 'stretch',
+    // alignContent: 'stretch',
+    alignItems: 'center',
+    justifyContent: 'center',
     // backgroundColor: '#2fd6c2',
+  },
+  list: {
+    flex: 1,
+    // backgroundColor: 'red',
+    alignSelf: 'stretch',
   },
 });
 
-export default MainScreen;
+export default ApiSearchScreen;

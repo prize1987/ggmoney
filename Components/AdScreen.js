@@ -1,5 +1,5 @@
 import React from 'react';
-import {Platform, Text} from 'react-native';
+import {Platform} from 'react-native';
 import {BannerAd, BannerAdSize, TestIds} from '@react-native-firebase/admob';
 import admob, {MaxAdContentRating} from '@react-native-firebase/admob';
 
@@ -17,7 +17,10 @@ admob()
   })
   .then(() => {
     // Request config successfully set!
-    console.log('request success');
+    // console.log('request success');
+  })
+  .catch(error => {
+    console.log(error);
   });
 
 class AdScreen extends React.Component {
@@ -27,17 +30,17 @@ class AdScreen extends React.Component {
         ? 'ca-app-pub-2933849600819980/2370173270'
         : 'ca-app-pub-2933849600819980/1912035942';
 
-    console.log(uid);
+    // console.log(uid);
     return (
       <BannerAd
         // unitId={TestIds.BANNER}
         unitId={uid}
-        size={BannerAdSize.SMART_BANNER}
+        size={BannerAdSize.FULL_BANNER}
         requestOptions={{
           requestNonPersonalizedAdsOnly: true,
         }}
         onAdLoaded={function() {
-          console.log('Advert loaded');
+          // console.log('Advert loaded');
         }}
         onAdFailedToLoad={function(error) {
           console.error('Advert failed to load: ', error);

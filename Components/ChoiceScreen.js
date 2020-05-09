@@ -8,13 +8,29 @@ import {
   Switch,
   ActivityIndicator,
   Alert,
+  Modal,
+  SafeAreaView,
 } from 'react-native';
+import {Button} from 'native-base';
 import Toast from 'react-native-root-toast';
 
 import GGDB from './Database';
 import ApiMain from './ApiMain';
 import CustomButton from './CustomButton';
 
+const siguns = [
+  ['가평군', '고양시', '과천시'],
+  ['광명시', '광주시', '구리시'],
+  ['군포시', '김포시', '남양주시'],
+  ['동두천시', '부천시', '성남시'],
+  ['수원시', '시흥시', '안산시'],
+  ['안성시', '안양시', '양주시'],
+  ['양평군', '여주시', '연천군'],
+  ['오산시', '용인시', '의왕시'],
+  ['의정부시', '이천시', '파주시'],
+  ['평택시', '포천시', '하남시'],
+  ['화성시'],
+];
 const WIDTH = Dimensions.get('window').width;
 
 class ChoiceScreen extends React.Component {
@@ -35,7 +51,18 @@ class ChoiceScreen extends React.Component {
   }
 
   componentDidMount = () => {
-    this.getMstSigun();
+    this.firstCheck();
+  };
+
+  firstCheck = async () => {
+    const {db} = this.state;
+
+    let cnt = await db.selectMstSigunUseCnt();
+    if (cnt === 0) {
+      this.setState({mode: 'first'});
+    } else {
+      this.getMstSigun();
+    }
   };
 
   showToast(msg, dur = Toast.durations.LONG, pos = Toast.positions.BOTTOM) {
@@ -61,6 +88,15 @@ class ChoiceScreen extends React.Component {
     this.setState({data: sigun, mode: 'select'});
   };
 
+  firstSigunChoice = async sigun => {
+    const {db, api} = this.state;
+
+    this.setState({mode: 'update'});
+
+    await db.updateMstSigun(sigun, 0, 1);
+    let apiCnt = await api.getApiSigunCount(sigun);
+    this.refreshData(sigun, apiCnt);
+  };
   toggleUseFlag = async (sigun, value) => {
     const {api, db} = this.state;
 
@@ -83,13 +119,19 @@ class ChoiceScreen extends React.Component {
     Alert.alert(
       '데이터 업데이트',
       sigun +
-        ' 데이터를 다운로드받으시겠습니까?\n' +
-        '\n\n 주의!\nWiFi 환경에서 진행하는 것을 권장합니다.',
+        ' 데이터를 지금 받으시겠습니까?\n' +
+        ' 데이터 크기 : 총 ' +
+        apiCnt +
+        '건 (약 ' +
+        Math.round((apiCnt * 0.406) / 1024) +
+        'MB)' +
+        '\n\n WiFi 환경에서 진행하는 것을 권장합니다.',
       [
         {
-          text: '취소',
+          text: '나중에',
           onPress: () => {
             console.log('Cancel Pressed');
+            this.getMstSigun();
           },
           style: 'cancel',
         },
@@ -192,74 +234,116 @@ class ChoiceScreen extends React.Component {
     const {data, mode, updateInfo} = this.state;
 
     return (
-      <View style={styles.container}>
-        {mode === 'select' ? (
-          <ScrollView
-            contentContainerStyle={styles.contentContainer}
-            style={{width: WIDTH}}>
-            {data.map((sigun, index) => {
-              return (
-                <View style={styles.itemContainer}>
-                  <Text style={styles.itemText}>{sigun.SIGUN_NM}</Text>
-                  {sigun.USE_FLAG === 1 ? (
-                    sigun.ITEM_CNT < sigun.API_CNT ? (
-                      <View style={styles.updateCheckContainer}>
-                        <View>
-                          <CustomButton
-                            title="업데이트 필요"
-                            titleColor="white"
-                            buttonColor="#2788e5"
-                            onPress={() =>
-                              this.refreshData(sigun.SIGUN_NM, sigun.API_CNT)
-                            }
-                          />
-                        </View>
-                      </View>
-                    ) : (
-                      <View style={styles.updateCheckContainer}>
-                        <Text style={{color: 'green'}}>최신데이터입니다.</Text>
-                      </View>
-                    )
-                  ) : (
-                    <></>
-                  )}
-
-                  <Switch
-                    trackColor={{false: '#767577', true: '#81b0ff'}}
-                    thumbColor={sigun.USE_FLAG === 1 ? '#f5dd4b' : '#f4f3f4'}
-                    ios_backgroundColor="#3e3e3e"
-                    onValueChange={value => {
-                      this.toggleUseFlag(sigun, value);
-                    }}
-                    value={sigun.USE_FLAG === 1}
-                  />
+      <>
+        {mode === 'first' ? (
+          <View style={styles.container}>
+            <ScrollView style={styles.scroll}>
+              <SafeAreaView>
+                <View style={styles.upperContainer}>
+                  <Text style={styles.upperText}>시군을 선택해주세요</Text>
                 </View>
-              );
-            })}
-          </ScrollView>
+
+                <View style={styles.lowerContainer}>
+                  {siguns.map((items, row) => {
+                    return (
+                      <View style={styles.buttonRow}>
+                        {items.map((item, col) => {
+                          return (
+                            <Button
+                              style={styles.button}
+                              onPress={() => {
+                                this.firstSigunChoice(item);
+                              }}>
+                              <Text style={styles.buttonText}>{item}</Text>
+                            </Button>
+                          );
+                        })}
+                      </View>
+                    );
+                  })}
+                </View>
+              </SafeAreaView>
+            </ScrollView>
+          </View>
         ) : (
-          <View>
-            <ActivityIndicator />
-            {mode === 'update' ? (
-              <View>
-                <Text>업데이트중...</Text>
-                <Text>
-                  {updateInfo.dbCount +
-                    '/' +
-                    updateInfo.apiCount +
-                    '(' +
-                    ((updateInfo.dbCount / updateInfo.apiCount) * 100).toFixed(
-                      2,
-                    ) +
-                    '%)'}
-                </Text>
-              </View>
+          <View style={styles.container}>
+            {mode === 'select' ? (
+              <ScrollView
+                contentContainerStyle={styles.contentContainer}
+                style={{width: WIDTH}}>
+                {data.map((sigun, index) => {
+                  return (
+                    <View style={styles.itemContainer}>
+                      <Text style={styles.itemText}>{sigun.SIGUN_NM}</Text>
+                      {sigun.USE_FLAG === 1 ? (
+                        sigun.ITEM_CNT < sigun.API_CNT ? (
+                          <View style={styles.updateCheckContainer}>
+                            <View>
+                              <CustomButton
+                                title="업데이트 필요"
+                                titleColor="white"
+                                buttonColor="#2788e5"
+                                onPress={() =>
+                                  this.refreshData(
+                                    sigun.SIGUN_NM,
+                                    sigun.API_CNT,
+                                  )
+                                }
+                              />
+                            </View>
+                          </View>
+                        ) : (
+                          <View style={styles.updateCheckContainer}>
+                            <Text style={{color: 'green'}}>
+                              최신데이터입니다.
+                            </Text>
+                          </View>
+                        )
+                      ) : (
+                        <></>
+                      )}
+
+                      <Switch
+                        trackColor={{false: '#767577', true: '#81b0ff'}}
+                        thumbColor={
+                          sigun.USE_FLAG === 1 ? '#f5dd4b' : '#f4f3f4'
+                        }
+                        ios_backgroundColor="#3e3e3e"
+                        onValueChange={value => {
+                          this.toggleUseFlag(sigun, value);
+                        }}
+                        value={sigun.USE_FLAG === 1}
+                      />
+                    </View>
+                  );
+                })}
+              </ScrollView>
             ) : (
-              <></>
+              <View>
+                <ActivityIndicator />
+                {mode === 'update' ? (
+                  <View>
+                    <Text>다운로드중...</Text>
+                    <Text>
+                      {updateInfo.dbCount +
+                        '/' +
+                        updateInfo.apiCount +
+                        '(' +
+                        (
+                          (updateInfo.dbCount / updateInfo.apiCount) *
+                          100
+                        ).toFixed(2) +
+                        '%)'}
+                    </Text>
+                  </View>
+                ) : (
+                  <></>
+                )}
+              </View>
             )}
           </View>
         )}
-      </View>
+      </>
     );
   }
 }
@@ -292,6 +376,41 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'flex-end',
     marginRight: 20,
+  },
+  scroll: {
+    marginHorizontal: 10,
+    // marginVertical: 50,
+  },
+  upperContainer: {
+    // flex: 1,
+    // height: 150,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 50,
+  },
+  upperText: {
+    fontSize: 30,
+    fontWeight: 'bold',
+    // marginTop: 50,
+  },
+  lowerContainer: {
+    flex: 1,
+    // height: 100,
+  },
+  buttonRow: {
+    flexDirection: 'row',
+  },
+  button: {
+    width: 100,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 10,
+    marginHorizontal: 10,
+  },
+  buttonText: {
+    fontSize: 20,
+    color: 'white',
+    fontWeight: 'bold',
   },
 });
 

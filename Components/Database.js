@@ -47,8 +47,8 @@ class GGDB {
       conditionList[i - 1] = '%' + conditionList[i - 1] + '%';
     }
 
-    console.log(selectQuery);
-    console.log(conditionList);
+    // console.log(selectQuery);
+    // console.log(conditionList);
 
     return new Promise((resolve, reject) => {
       // if (db !== null) {
@@ -116,6 +116,32 @@ class GGDB {
         tx.executeSql(
           'DELETE FROM GGMONEY WHERE SIGUN_NM = ?',
           [sigun],
+          (tx, results) => {
+            if (results !== null) {
+              //   console.log('delete Success : ' + results.rowsAffected);
+              resolve(results.rowsAffected);
+            } else {
+              console.log('delete ggmoney failed');
+              reject(-1);
+            }
+          },
+          err => {
+            console.log(err);
+          },
+        );
+      });
+      // }
+    });
+  };
+  deleteGgmoneyAll = () => {
+    let {db} = this.state;
+
+    return new Promise((resolve, reject) => {
+      // if (db !== null) {
+      db.transaction(tx => {
+        tx.executeSql(
+          'DELETE FROM GGMONEY',
+          [],
           (tx, results) => {
             if (results !== null) {
               //   console.log('delete Success : ' + results.rowsAffected);
@@ -218,6 +244,21 @@ class GGDB {
     });
   };
 
+  selectMstSigunUseCnt = () => {
+    let {db} = this.state;
+
+    let selectQuery = 'SELECT COUNT(*) CNT FROM MST_SIGUN WHERE USE_FLAG = 1';
+
+    return new Promise((resolve, rejct) => {
+      // if (db !== null) {
+      db.transaction(tx => {
+        tx.executeSql(selectQuery, [], (tx, results) => {
+          // console.log(results.rows.item(0).CNT);
+          resolve(results.rows.item(0).CNT);
+        });
+      });
+    });
+  };
   selectMstSigun = () => {
     let {db} = this.state;
 
@@ -257,6 +298,31 @@ class GGDB {
         tx.executeSql(
           'UPDATE MST_SIGUN SET ITEM_CNT = ?, USE_FLAG = ? WHERE SIGUN_NM = ?',
           [itemCnt, useFlag, sigun],
+          (tx, results) => {
+            if (results.rowsAffected > 0) {
+              updateCnt += results.rowsAffected;
+              resolve(updateCnt);
+            } else {
+              console.log('update mst_sigun failed');
+              reject(-1);
+            }
+          },
+          err => {
+            console.log(err);
+          },
+        );
+      });
+    });
+  };
+  initMstSigun = () => {
+    let {db} = this.state;
+    let updateCnt = 0;
+
+    return new Promise((resolve, reject) => {
+      db.transaction(tx => {
+        tx.executeSql(
+          'UPDATE MST_SIGUN SET ITEM_CNT = 0, USE_FLAG = 0',
+          [],
           (tx, results) => {
             if (results.rowsAffected > 0) {
               updateCnt += results.rowsAffected;
