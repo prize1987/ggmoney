@@ -39,6 +39,7 @@ yarn-error.log
 buck-out/
 \.buckd/
 *.keystore
+*.plist
 !debug.keystore
 
 # fastlane
@@ -57,3 +58,6 @@ buck-out/
 
 # CocoaPods
 /ios/Pods/
+
+# environment variables
+.env

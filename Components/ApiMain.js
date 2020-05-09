@@ -1,9 +1,11 @@
+import {API_KEY_GGMONEY} from 'react-native-dotenv';
+
 class ApiMain {
   constructor() {}
 
   getApiData(sigun, index, size) {
     const url = 'https://openapi.gg.go.kr/RegionMnyFacltStus';
-    const appKey = 'cc5f595a2a564bd99625d91ed8abe7e0';
+    const appKey = API_KEY_GGMONEY;
     const pIndex = index;
     const pSize = size;
     const type = 'json';
@@ -28,7 +30,7 @@ class ApiMain {
 
   getApiTotalCount() {
     const url = 'https://openapi.gg.go.kr/RegionMnyFacltStus';
-    const appKey = 'cc5f595a2a564bd99625d91ed8abe7e0';
+    const appKey = API_KEY_GGMONEY;
     const pIndex = 1;
     const pSize = 1;
     const type = 'json';
@@ -51,7 +53,7 @@ class ApiMain {
 
   getApiSigunCount(sigun) {
     const url = 'https://openapi.gg.go.kr/RegionMnyFacltStus';
-    const appKey = 'cc5f595a2a564bd99625d91ed8abe7e0';
+    const appKey = API_KEY_GGMONEY;
     const pIndex = 1;
     const pSize = 1;
     const type = 'json';
@@ -75,7 +77,7 @@ class ApiMain {
 
   searchApiDataCount(searchConName, searchConAddr, addrType) {
     const url = 'https://openapi.gg.go.kr/RegionMnyFacltStus';
-    const appKey = 'cc5f595a2a564bd99625d91ed8abe7e0';
+    const appKey = API_KEY_GGMONEY;
     const pIndex = 1;
     const pSize = 1;
     const type = 'json';
@@ -114,7 +116,7 @@ class ApiMain {
   }
   searchApiData(index, size, searchConName, searchConAddr, addrType) {
     const url = 'https://openapi.gg.go.kr/RegionMnyFacltStus';
-    const appKey = 'cc5f595a2a564bd99625d91ed8abe7e0';
+    const appKey = API_KEY_GGMONEY;
     const pIndex = index;
     const pSize = size;
     const type = 'json';

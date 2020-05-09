@@ -2,6 +2,7 @@ import React from 'react';
 import {Platform} from 'react-native';
 import {BannerAd, BannerAdSize, TestIds} from '@react-native-firebase/admob';
 import admob, {MaxAdContentRating} from '@react-native-firebase/admob';
+import {ADMOB_KEY_ANDROID, ADMOB_KEY_IOS} from 'react-native-dotenv';
 
 admob()
   .setRequestConfiguration({
@@ -25,16 +26,12 @@ admob()
 
 class AdScreen extends React.Component {
   render() {
-    const uid =
-      Platform.OS === 'ios'
-        ? 'ca-app-pub-2933849600819980/2370173270'
-        : 'ca-app-pub-2933849600819980/1912035942';
+    const uid = Platform.OS === 'ios' ? ADMOB_KEY_IOS : ADMOB_KEY_ANDROID;
 
-    // console.log(uid);
     return (
       <BannerAd
-        // unitId={TestIds.BANNER}
-        unitId={uid}
+        unitId={TestIds.BANNER}
+        // unitId={uid}
         size={BannerAdSize.FULL_BANNER}
         requestOptions={{
           requestNonPersonalizedAdsOnly: true,
