@@ -7,32 +7,30 @@ import {
   TouchableOpacity,
   FlatList,
 } from 'react-native';
-import {Item, Label, Input, Icon, ListItem, CheckBox} from 'native-base';
-import ApiMain from './ApiMain';
+import {Item, Label, Input, Icon, ListItem} from 'native-base';
+import CustomButton from './CustomButton';
+import GGDB from './Database';
 import Toast from 'react-native-root-toast';
 
-class ApiSearchScreen extends React.Component {
-  static defaultProps = {numToRender: 50};
+class SearchScreenDb extends React.Component {
+  static defaultProps = {numToRender: 20};
   state = {
-    searchConName: '',
-    searchConAddr: '',
-    addrType: '',
-    api: null,
+    searchCon: '',
+    db: null,
     data: [],
     fetchCnt: 0,
     totalCnt: 0,
-    nextIndex: 1,
-    mode: 'start',
+    isLoaded: false,
   };
 
   constructor(props) {
     super(props);
 
-    this.state.api = new ApiMain();
+    this.state.db = new GGDB();
   }
 
   componentDidMount() {
-    // this.getInitData();
+    this.getInitData();
     // console.log(this.props.numToRender);
   }
 
@@ -48,32 +46,13 @@ class ApiSearchScreen extends React.Component {
 
   async getInitData() {
     const {numToRender} = this.props;
-    const {searchConName, searchConAddr, api} = this.state;
+    const {searchCon, db} = this.state;
+    console.log(searchCon);
 
-    this.setState({mode: 'loading'});
+    this.setState({isLoaded: false});
 
-    let addrType = 'lotno';
-    let totalCnt = await api.searchApiDataCount(
-      searchConName,
-      searchConAddr,
-      addrType,
-    );
-    if (totalCnt === 0) {
-      addrType = 'road';
-      totalCnt = await api.searchApiDataCount(
-        searchConName,
-        searchConAddr,
-        addrType,
-      );
-    }
-
-    let recvData = await api.searchApiData(
-      1,
-      numToRender,
-      searchConName,
-      searchConAddr,
-      addrType,
-    );
+    let totalCnt = await db.selectGgmoneyCnt(searchCon);
+    let recvData = await db.selectGgmoney(searchCon, 0, numToRender);
 
     this.showToast(
       totalCnt + '건 조회',
@@ -83,40 +62,22 @@ class ApiSearchScreen extends React.Component {
 
     this.setState({
       data: recvData,
-      fetchCnt: recvData ? recvData.length : 0,
+      fetchCnt: recvData.length,
       totalCnt: totalCnt,
-      addrType: addrType,
-      nextIndex: 2,
-      mode: 'loaded',
+      isLoaded: true,
     });
   }
   async getMoreData() {
     const {numToRender} = this.props;
-    const {
-      searchConName,
-      searchConAddr,
-      addrType,
-      data,
-      fetchCnt,
-      nextIndex,
-      api,
-    } = this.state;
+    const {searchCon, data, fetchCnt, db} = this.state;
 
-    let recvData = await api.searchApiData(
-      nextIndex,
-      numToRender,
-      searchConName,
-      searchConAddr,
-      addrType,
-    );
+    let recvData = await db.selectGgmoney(searchCon, fetchCnt, numToRender);
 
-    if (recvData !== null) {
-      this.setState({
-        data: [...data, ...recvData],
-        fetchCnt: fetchCnt + recvData.length,
-        nextIndex: nextIndex + 1,
-      });
-    }
+    this.setState({
+      data: [...data, ...recvData],
+      fetchCnt: fetchCnt + recvData.length,
+      // isLoaded: true,
+    });
   }
 
   onEndReached = () => {
@@ -128,7 +89,7 @@ class ApiSearchScreen extends React.Component {
   };
   render() {
     const {numToRender} = this.props;
-    const {data, mode} = this.state;
+    const {data, isLoaded, fetchCnt, totalCnt} = this.state;
 
     return (
       <>
@@ -138,32 +99,25 @@ class ApiSearchScreen extends React.Component {
               <Icon style={styles.icon} name="search" />
             </Label>
             <Input
-              placeholder="상호명"
+              placeholder="키워드 검색 (띄어쓰기로 구분)"
               onChangeText={text => {
-                this.setState({searchConName: text});
+                this.setState({searchCon: text});
               }}
               onSubmitEditing={() => this.getInitData()}
               returnKeyType="search"
             />
           </Item>
-          <Item style={styles.textInput} inlineLabel>
-            <Label>
-              <Icon style={styles.icon} name="search" />
-            </Label>
-            <Input
-              placeholder="주소"
-              onChangeText={text => {
-                this.setState({searchConAddr: text});
-              }}
-              onSubmitEditing={() => this.getInitData()}
-              returnKeyType="search"
-            />
-          </Item>
+          <CustomButton
+            title="검색"
+            titleColor="white"
+            buttonColor="#2788e5"
+            onPress={() => this.getInitData()}
+          />
         </View>
         <View style={styles.listContainer}>
-          {mode === 'loaded' ? (
+          {isLoaded ? (
             <FlatList
-              style={styles.list}
+              style={styles.container}
               data={data}
               initialNumToRender={numToRender}
               onEndReachedThreshold={1}
@@ -173,6 +127,7 @@ class ApiSearchScreen extends React.Component {
                   <ListItem style={{flex: 1}}>
                     <TouchableOpacity style={styles.itemArea}>
                       <Text style={styles.itemTitle}>{item.CMPNM_NM}</Text>
+                      <Text style={styles.itemSub}>{item.INDUTYPE_NM}</Text>
                       <Text style={styles.itemSub}>
                         {item.REFINE_LOTNO_ADDR}
                       </Text>
@@ -180,15 +135,14 @@ class ApiSearchScreen extends React.Component {
                         {item.REFINE_ROADNM_ADDR}
                       </Text>
                       <Text style={styles.itemSub}>{item.TELNO}</Text>
+                      {/* <Text>{this.state.fetchCnt}</Text> */}
                     </TouchableOpacity>
                   </ListItem>
                 );
               }}
             />
-          ) : mode === 'loading' ? (
-            <ActivityIndicator size={50} style={{marginTop: 50}} />
           ) : (
-            <Text>검색어를 입력해주세요.</Text>
+            <ActivityIndicator size={50} style={{marginTop: 50}} />
           )}
         </View>
       </>
@@ -204,7 +158,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     // alignItems:''
     flexDirection: 'row',
-    paddingHorizontal: 10,
+    // paddingHorizontal: 10,
     // paddingVertical: 10,
   },
   textInput: {
@@ -225,9 +179,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#595959',
   },
-  itemArea: {
-    flex: 1,
-  },
   icon: {
     fontSize: 24,
     color: 'gray',
@@ -243,16 +194,9 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     flex: 1,
-    // alignContent: 'stretch',
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignContent: 'stretch',
     // backgroundColor: '#2fd6c2',
-  },
-  list: {
-    flex: 1,
-    // backgroundColor: 'red',
-    alignSelf: 'stretch',
   },
 });
 
-export default ApiSearchScreen;
+export default SearchScreenDb;

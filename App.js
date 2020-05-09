@@ -9,11 +9,12 @@ import {
 } from 'react-native';
 import {Footer, FooterTab, Button, Icon} from 'native-base';
 
-import ApiSearchScreen from './Components/ApiSearchScreen';
-import MainScreen from './Components/MainScreen';
+import SearchScreenApi from './Components/SearchScreenApi';
+import SearchScreenDb from './Components/SearchScreenDb';
 import AdScreen from './Components/AdScreen';
 import FirstScreen from './Components/FirstScreen';
 import OptionScreen from './Components/OptionScreen';
+import MapScreenDb from './Components/MapScreenDb';
 
 class App extends React.Component {
   state = {
@@ -47,10 +48,12 @@ class App extends React.Component {
             <View style={styles.bodyContainer}>
               {activePage === 'search' ? (
                 isDownload ? (
-                  <MainScreen />
+                  <SearchScreenDb />
                 ) : (
-                  <ApiSearchScreen />
+                  <SearchScreenApi />
                 )
+              ) : activePage === 'map' ? (
+                <MapScreenDb />
               ) : activePage === 'option' ? (
                 <OptionScreen />
               ) : (
@@ -71,6 +74,19 @@ class App extends React.Component {
                   }}>
                   <Icon active={activePage === 'search'} name="search" />
                   <Text>매장 검색</Text>
+                </Button>
+                <Button
+                  vertical
+                  active={activePage === 'map'}
+                  onPress={async () => {
+                    let dlcheck = await AsyncStorage.getItem('isDownload');
+                    this.setState({
+                      activePage: 'map',
+                      isDownload: dlcheck === 'true',
+                    });
+                  }}>
+                  <Icon active={activePage === 'map'} name="map" />
+                  <Text>지도 검색</Text>
                 </Button>
                 <Button
                   vertical
