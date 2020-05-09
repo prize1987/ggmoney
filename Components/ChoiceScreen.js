@@ -8,7 +8,6 @@ import {
   Switch,
   ActivityIndicator,
   Alert,
-  Modal,
   SafeAreaView,
 } from 'react-native';
 import {Button} from 'native-base';
