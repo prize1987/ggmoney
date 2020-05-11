@@ -15,6 +15,7 @@ import AdScreen from './Components/AdScreen';
 import FirstScreen from './Components/FirstScreen';
 import OptionScreen from './Components/OptionScreen';
 import MapScreenDb from './Components/MapScreenDb';
+import MapScreenApi from './Components/MapScreenApi';
 
 class App extends React.Component {
   state = {
@@ -53,7 +54,11 @@ class App extends React.Component {
                   <SearchScreenApi />
                 )
               ) : activePage === 'map' ? (
-                <MapScreenDb />
+                isDownload ? (
+                  <MapScreenDb />
+                ) : (
+                  <MapScreenApi />
+                )
               ) : activePage === 'option' ? (
                 <OptionScreen />
               ) : (

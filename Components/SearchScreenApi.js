@@ -188,7 +188,16 @@ class SearchScreenApi extends React.Component {
           ) : mode === 'loading' ? (
             <ActivityIndicator size={50} style={{marginTop: 50}} />
           ) : (
-            <Text>검색어를 입력해주세요.</Text>
+            <View>
+              <Text style={styles.infoText}>검색어를 입력해주세요.</Text>
+              <Text />
+              <Text style={styles.infoSub}>
+                옵션 - 다운로드 방식 기능을 확인해보세요
+              </Text>
+              <Text style={styles.infoSub}>
+                보다 빠르고 편리한 검색이 가능합니다.
+              </Text>
+            </View>
           )}
         </View>
       </>
@@ -252,6 +261,15 @@ const styles = StyleSheet.create({
     flex: 1,
     // backgroundColor: 'red',
     alignSelf: 'stretch',
+  },
+  infoText: {
+    fontSize: 18,
+    alignSelf: 'center',
+  },
+  infoSub: {
+    fontSize: 14,
+    color: 'grey',
+    alignSelf: 'center',
   },
 });
 

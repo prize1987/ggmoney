@@ -5,22 +5,25 @@ import {
   Text,
   ActivityIndicator,
   TouchableOpacity,
+  FlatList,
 } from 'react-native';
-import {Item, Label, Input, Icon} from 'native-base';
-import CustomButton from './CustomButton';
-import GGDB from './Database';
+import {Item, Label, Input, Icon, ListItem, CheckBox} from 'native-base';
+import ApiMain from './ApiMain';
 import Toast from 'react-native-root-toast';
 import MapView, {PROVIDER_GOOGLE, Marker, Callout} from 'react-native-maps';
 
-class MapScreenDb extends React.Component {
-  static defaultProps = {numToRender: 100};
+class SearchScreenApi extends React.Component {
+  static defaultProps = {numToRender: 1000};
   state = {
-    searchCon: '',
-    db: null,
+    searchConName: '',
+    searchConAddr: '',
+    addrType: '',
+    api: null,
     data: [],
     fetchCnt: 0,
     totalCnt: 0,
-    isLoaded: true,
+    nextIndex: 1,
+    mode: 'start',
     region: {
       latitude: 37.275077,
       longitude: 127.009477,
@@ -32,11 +35,11 @@ class MapScreenDb extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state.db = new GGDB();
+    this.state.api = new ApiMain();
   }
 
   componentDidMount() {
-    this.getInitData();
+    // this.getInitData();
     // console.log(this.props.numToRender);
   }
 
@@ -52,13 +55,32 @@ class MapScreenDb extends React.Component {
 
   async getInitData() {
     const {numToRender} = this.props;
-    const {searchCon, db} = this.state;
-    console.log(searchCon);
+    const {searchConName, searchConAddr, api} = this.state;
 
-    this.setState({isLoaded: false});
+    this.setState({mode: 'loading'});
 
-    let totalCnt = await db.selectGgmoneyCnt(searchCon);
-    let recvData = await db.selectGgmoney(searchCon, 0, numToRender);
+    let addrType = 'lotno';
+    let totalCnt = await api.searchApiDataCount(
+      searchConName,
+      searchConAddr,
+      addrType,
+    );
+    if (totalCnt === 0) {
+      addrType = 'road';
+      totalCnt = await api.searchApiDataCount(
+        searchConName,
+        searchConAddr,
+        addrType,
+      );
+    }
+
+    let recvData = await api.searchApiData(
+      1,
+      numToRender,
+      searchConName,
+      searchConAddr,
+      addrType,
+    );
 
     this.showToast(
       totalCnt + '건 조회',
@@ -93,11 +115,41 @@ class MapScreenDb extends React.Component {
 
     this.setState({
       data: recvData,
-      fetchCnt: recvData.length,
+      fetchCnt: recvData ? recvData.length : 0,
       totalCnt: totalCnt,
-      isLoaded: true,
+      addrType: addrType,
+      nextIndex: 2,
+      mode: 'loaded',
       region: region,
     });
+  }
+  async getMoreData() {
+    const {numToRender} = this.props;
+    const {
+      searchConName,
+      searchConAddr,
+      addrType,
+      data,
+      fetchCnt,
+      nextIndex,
+      api,
+    } = this.state;
+
+    let recvData = await api.searchApiData(
+      nextIndex,
+      numToRender,
+      searchConName,
+      searchConAddr,
+      addrType,
+    );
+
+    if (recvData !== null) {
+      this.setState({
+        data: [...data, ...recvData],
+        fetchCnt: fetchCnt + recvData.length,
+        nextIndex: nextIndex + 1,
+      });
+    }
   }
 
   onRegionChange = region => {
@@ -106,7 +158,7 @@ class MapScreenDb extends React.Component {
   };
 
   render() {
-    const {data, isLoaded, region} = this.state;
+    const {data, mode, region} = this.state;
 
     return (
       <>
@@ -116,23 +168,30 @@ class MapScreenDb extends React.Component {
               <Icon style={styles.icon} name="search" />
             </Label>
             <Input
-              placeholder="키워드 검색 (띄어쓰기로 구분)"
+              placeholder="상호명"
               onChangeText={text => {
-                this.setState({searchCon: text});
+                this.setState({searchConName: text});
               }}
               onSubmitEditing={() => this.getInitData()}
               returnKeyType="search"
             />
           </Item>
-          <CustomButton
-            title="검색"
-            titleColor="white"
-            buttonColor="#2788e5"
-            onPress={() => this.getInitData()}
-          />
+          <Item style={styles.textInput} inlineLabel>
+            <Label>
+              <Icon style={styles.icon} name="search" />
+            </Label>
+            <Input
+              placeholder="주소"
+              onChangeText={text => {
+                this.setState({searchConAddr: text});
+              }}
+              onSubmitEditing={() => this.getInitData()}
+              returnKeyType="search"
+            />
+          </Item>
         </View>
         <View style={styles.listContainer}>
-          {isLoaded ? (
+          {mode === 'loaded' ? (
             <View style={styles.container}>
               <MapView
                 style={styles.container}
@@ -190,8 +249,19 @@ class MapScreenDb extends React.Component {
                 />
               </TouchableOpacity> */}
             </View>
-          ) : (
+          ) : mode === 'loading' ? (
             <ActivityIndicator size={50} style={{marginTop: 50}} />
+          ) : (
+            <View>
+              <Text style={styles.infoText}>검색어를 입력해주세요.</Text>
+              <Text />
+              <Text style={styles.infoSub}>
+                옵션 - 다운로드 방식 기능을 확인해보세요
+              </Text>
+              <Text style={styles.infoSub}>
+                보다 빠르고 편리한 검색이 가능합니다.
+              </Text>
+            </View>
           )}
         </View>
       </>
@@ -202,6 +272,7 @@ class MapScreenDb extends React.Component {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    // backgroundColor: 'red',
   },
   searchContainer: {
     height: 60,
@@ -210,7 +281,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     // alignItems:''
     flexDirection: 'row',
-    // paddingHorizontal: 10,
+    paddingHorizontal: 10,
     // paddingVertical: 10,
   },
   textInput: {
@@ -223,31 +294,26 @@ const styles = StyleSheet.create({
     marginVertical: 1,
     marginHorizontal: 1,
   },
-  itemTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  itemSub: {
-    fontSize: 13,
-    color: '#595959',
-  },
   icon: {
     fontSize: 24,
     color: 'gray',
     // marginHorizontal:,
   },
-  searchButton: {
-    flex: 1,
-    // width: 200,
-    // fontSize: 24,
-    alignItems: 'center',
-    justifyContent: 'center',
-    // paddingLeft: 200,
-  },
   listContainer: {
     flex: 1,
     alignContent: 'stretch',
+    // alignItems: 'center',
+    justifyContent: 'center',
     // backgroundColor: '#2fd6c2',
+  },
+  infoText: {
+    fontSize: 18,
+    alignSelf: 'center',
+  },
+  infoSub: {
+    fontSize: 14,
+    color: 'grey',
+    alignSelf: 'center',
   },
   mapInfoText: {
     fontSize: 15,
@@ -260,4 +326,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default MapScreenDb;
+export default SearchScreenApi;
