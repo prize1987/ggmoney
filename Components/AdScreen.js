@@ -1,5 +1,5 @@
 import React from 'react';
-import {Platform} from 'react-native';
+import {View, Platform} from 'react-native';
 import {BannerAd, BannerAdSize, TestIds} from '@react-native-firebase/admob';
 import admob, {MaxAdContentRating} from '@react-native-firebase/admob';
 import {ADMOB_KEY_ANDROID, ADMOB_KEY_IOS} from 'react-native-dotenv';
@@ -25,17 +25,28 @@ admob()
   });
 
 class AdScreen extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.state = {
+      viewHeight: 0,
+    };
+  }
+
   render() {
     const uid = Platform.OS === 'ios' ? ADMOB_KEY_IOS : ADMOB_KEY_ANDROID;
 
+    // console.log(Platform.OS + ' : ' + uid);
+
     return (
+      // <View style={{height: this.state.height}}>
       <BannerAd
         // unitId={TestIds.BANNER}
         unitId={uid}
         size={BannerAdSize.FULL_BANNER}
-        requestOptions={{
-          requestNonPersonalizedAdsOnly: true,
-        }}
+        // requestOptions={{
+        //   requestNonPersonalizedAdsOnly: true,
+        // }}
         onAdLoaded={function() {
           // console.log('Advert loaded');
         }}
@@ -43,6 +54,7 @@ class AdScreen extends React.Component {
           console.error('Advert failed to load: ', error);
         }}
       />
+      // </View>
     );
   }
 }

@@ -99,15 +99,15 @@ class App extends React.Component {
                   onPress={() => {
                     this.setState({activePage: 'option'});
                   }}>
-                  <Icon active={activePage === 'option'} name="cog" />
+                  <Icon active={activePage === 'option'} name="md-construct" />
                   <Text>옵션</Text>
                 </Button>
               </FooterTab>
             </Footer>
           </View>
-          <View style={styles.adContainer}>
-            <AdScreen />
-          </View>
+          {/* <View style={styles.adContainer}> */}
+          <AdScreen />
+          {/* </View> */}
         </SafeAreaView>
       </View>
     );

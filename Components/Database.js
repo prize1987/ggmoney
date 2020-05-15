@@ -107,6 +107,76 @@ class GGDB {
     });
   };
 
+  selectGgmoneyByArea = (
+    conditions,
+    lat_lcl,
+    lat_ucl,
+    lon_lcl,
+    lon_ucl,
+    limit,
+  ) => {
+    const {db} = this.state;
+
+    const conditionList = conditions.split(' ');
+    let selectQuery = 'SELECT * FROM GGMONEY WHERE 1=1';
+
+    for (let i = 1; i <= conditionList.length; i++) {
+      selectQuery +=
+        ' AND (CMPNM_NM LIKE ?' +
+        i +
+        ' OR REFINE_LOTNO_ADDR LIKE ?' +
+        i +
+        ' OR REFINE_ROADNM_ADDR LIKE ?' +
+        i +
+        ' OR INDUTYPE_NM LIKE ?' +
+        i +
+        ')';
+      conditionList[i - 1] = '%' + conditionList[i - 1] + '%';
+    }
+    selectQuery +=
+      ' AND CAST(REFINE_WGS84_LAT  AS FLOAT) >= CAST(?' +
+      (conditionList.length + 1) +
+      ' AS FLOAT)' +
+      ' AND CAST(REFINE_WGS84_LAT  AS FLOAT) <= CAST(?' +
+      (conditionList.length + 2) +
+      ' AS FLOAT)' +
+      ' AND CAST(REFINE_WGS84_LOGT AS FLOAT) >= CAST(?' +
+      (conditionList.length + 3) +
+      ' AS FLOAT)' +
+      ' AND CAST(REFINE_WGS84_LOGT AS FLOAT) <= CAST(?' +
+      (conditionList.length + 4) +
+      ' AS FLOAT)' +
+      ' LIMIT 0, ' +
+      limit;
+
+    // console.log(selectQuery);
+    // console.log(conditionList.concat([lat_lcl, lat_ucl, lon_lcl, lon_ucl]));
+
+    return new Promise((resolve, reject) => {
+      // if (db !== null) {
+      db.transaction(tx => {
+        tx.executeSql(
+          selectQuery,
+          conditionList.concat([lat_lcl, lat_ucl, lon_lcl, lon_ucl]),
+          (tx, results) => {
+            let ret = [];
+            let dataLength = results.rows.length;
+            // console.log(ret.length);
+            for (let i = 0; i < dataLength; i++) {
+              ret.push(results.rows.item(i));
+            }
+
+            resolve(ret);
+          },
+          err => {
+            reject(err);
+          },
+        );
+      });
+      // }
+    });
+  };
+
   deleteGgmoney = sigun => {
     let {db} = this.state;
 

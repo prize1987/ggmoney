@@ -151,7 +151,7 @@ class SearchScreenApi extends React.Component {
               <Icon style={styles.icon} name="search" />
             </Label>
             <Input
-              placeholder="주소"
+              placeholder="주소(지번 or 도로명)"
               onChangeText={text => {
                 this.setState({searchConAddr: text});
               }}

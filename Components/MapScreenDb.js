@@ -5,21 +5,21 @@ import {
   Text,
   ActivityIndicator,
   TouchableOpacity,
+  AsyncStorage,
 } from 'react-native';
 import {Item, Label, Input, Icon} from 'native-base';
 import CustomButton from './CustomButton';
 import GGDB from './Database';
 import Toast from 'react-native-root-toast';
+import Geolocation from '@react-native-community/geolocation';
 import MapView, {PROVIDER_GOOGLE, Marker, Callout} from 'react-native-maps';
 
 class MapScreenDb extends React.Component {
-  static defaultProps = {numToRender: 100};
   state = {
     searchCon: '',
     db: null,
     data: [],
     fetchCnt: 0,
-    totalCnt: 0,
     isLoaded: true,
     region: {
       latitude: 37.275077,
@@ -29,14 +29,22 @@ class MapScreenDb extends React.Component {
     },
   };
 
+  numToRender = 100;
+
   constructor(props) {
     super(props);
 
     this.state.db = new GGDB();
+
+    AsyncStorage.getItem('mapSearchLimit').then(res => {
+      console.log(res);
+      this.numToRender = res ? res : 100;
+      console.log(this.numToRender);
+    });
   }
 
   componentDidMount() {
-    this.getInitData();
+    // this.searchData();
     // console.log(this.props.numToRender);
   }
 
@@ -50,18 +58,36 @@ class MapScreenDb extends React.Component {
     });
   }
 
-  async getInitData() {
-    const {numToRender} = this.props;
+  async searchData(area) {
     const {searchCon, db} = this.state;
-    console.log(searchCon);
+    // console.log(searchCon);
 
     this.setState({isLoaded: false});
 
-    let totalCnt = await db.selectGgmoneyCnt(searchCon);
-    let recvData = await db.selectGgmoney(searchCon, 0, numToRender);
+    let recvData;
+
+    if (area === undefined) {
+      recvData = await db.selectGgmoney(searchCon, 0, this.numToRender);
+    } else {
+      let lat_lcl = area.latitude - area.latitudeDelta / 2;
+      let lat_ucl = area.latitude + area.latitudeDelta / 2;
+      let lon_lcl = area.longitude - area.longitudeDelta / 2;
+      let lon_ucl = area.longitude + area.longitudeDelta / 2;
+
+      recvData = await db.selectGgmoneyByArea(
+        searchCon,
+        lat_lcl,
+        lat_ucl,
+        lon_lcl,
+        lon_ucl,
+        this.numToRender,
+      );
+    }
 
     this.showToast(
-      totalCnt + '건 조회',
+      recvData.length >= this.numToRender
+        ? this.numToRender + '건 이상'
+        : recvData.length + '건 조회',
       Toast.durations.SHORT,
       Toast.positions.BOTTOM,
     );
@@ -69,13 +95,20 @@ class MapScreenDb extends React.Component {
     let {region} = this.state;
 
     if (recvData.length > 0) {
-      let minlat = recvData[0].REFINE_WGS84_LAT;
-      let maxlat = recvData[0].REFINE_WGS84_LAT;
-      let minlon = recvData[0].REFINE_WGS84_LOGT;
-      let maxlon = recvData[0].REFINE_WGS84_LOGT;
+      let minlat = 9999;
+      let maxlat = -9999;
+      let minlon = 9999;
+      let maxlon = -9999;
 
       recvData.map(item => {
-        if (item.REFINE_WGS84_LAT !== null && item.REFINE_WGS84_LOGT !== null) {
+        if (
+          item.REFINE_WGS84_LAT !== null &&
+          item.REFINE_WGS84_LOGT !== null &&
+          item.REFINE_WGS84_LAT > 35 &&
+          item.REFINE_WGS84_LAT < 40 &&
+          item.REFINE_WGS84_LOGT > 125 &&
+          item.REFINE_WGS84_LOGT < 130
+        ) {
           minlat = Math.min(minlat, item.REFINE_WGS84_LAT);
           maxlat = Math.max(maxlat, item.REFINE_WGS84_LAT);
           minlon = Math.min(minlon, item.REFINE_WGS84_LOGT);
@@ -83,26 +116,51 @@ class MapScreenDb extends React.Component {
         }
       });
 
-      region = {
-        latitude: (minlat + maxlat) / 2,
-        longitude: (minlon + maxlon) / 2,
-        latitudeDelta: maxlat - minlat + 0.01,
-        longitudeDelta: maxlon - minlon + 0.01,
-      };
+      if (minlat !== 9999 && minlon !== 9999) {
+        region = {
+          latitude: (minlat + maxlat) / 2,
+          longitude: (minlon + maxlon) / 2,
+          latitudeDelta: maxlat - minlat,
+          longitudeDelta: maxlon - minlon,
+        };
+      }
     }
 
     this.setState({
       data: recvData,
       fetchCnt: recvData.length,
-      totalCnt: totalCnt,
       isLoaded: true,
       region: region,
     });
   }
 
-  onRegionChange = region => {
-    // console.log(region);
-    this.setState({region: region});
+  onRegionChange = reg => {
+    const {region} = this.state;
+    console.log(reg);
+    if (
+      region.latitude.toFixed(6) !== reg.latitude.toFixed(6) ||
+      region.longitude.toFixed(6) !== reg.longitude.toFixed(6)
+    ) {
+      this.setState({region: reg});
+    }
+  };
+
+  getCurrentPosition = () => {
+    Geolocation.getCurrentPosition(
+      position => {
+        // console.log(position);
+        let curRegion = {
+          latitude: position.coords.latitude,
+          longitude: position.coords.longitude,
+          latitudeDelta: 0.02,
+          longitudeDelta: 0.01,
+        };
+        this.setState({region: curRegion});
+      },
+      error => {
+        console.log(error);
+      },
+    );
   };
 
   render() {
@@ -120,7 +178,7 @@ class MapScreenDb extends React.Component {
               onChangeText={text => {
                 this.setState({searchCon: text});
               }}
-              onSubmitEditing={() => this.getInitData()}
+              onSubmitEditing={() => this.searchData()}
               returnKeyType="search"
             />
           </Item>
@@ -128,7 +186,7 @@ class MapScreenDb extends React.Component {
             title="검색"
             titleColor="white"
             buttonColor="#2788e5"
-            onPress={() => this.getInitData()}
+            onPress={() => this.searchData()}
           />
         </View>
         <View style={styles.listContainer}>
@@ -138,7 +196,9 @@ class MapScreenDb extends React.Component {
                 style={styles.container}
                 provider={PROVIDER_GOOGLE}
                 initialRegion={region}
-                onRegionChangeComplete={this.onRegionChange}>
+                region={region}
+                onRegionChangeComplete={this.onRegionChange}
+                showsUserLocation={true}>
                 {data ? (
                   data.map((item, index) => {
                     if (
@@ -147,6 +207,7 @@ class MapScreenDb extends React.Component {
                     ) {
                       return (
                         <Marker
+                          key={index}
                           coordinate={{
                             latitude: parseFloat(item.REFINE_WGS84_LAT),
                             longitude: parseFloat(item.REFINE_WGS84_LOGT),
@@ -174,21 +235,19 @@ class MapScreenDb extends React.Component {
                   <></>
                 )}
               </MapView>
-              {/* <TouchableOpacity style={styles.overlay}>
-                <Text
-                  style={{
-                    position: 'absolute',
-                    bottom: 50,
-                  }}>
-                  Touchable Opacity
-                </Text>
-                <ActivityIndicator
-                  style={{
-                    position: 'absolute',
-                    bottom: 50,
-                  }}
-                />
-              </TouchableOpacity> */}
+              <TouchableOpacity
+                style={styles.myOverlayContainer}
+                onPress={this.getCurrentPosition}>
+                <Icon name="md-locate" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.curOverlayContainer}
+                onPress={() => {
+                  this.searchData(this.state.region);
+                }}>
+                <Icon style={styles.curOverlayIcon} name="md-refresh" />
+                <Text style={styles.curOverlayText}>현 지도에서 검색</Text>
+              </TouchableOpacity>
             </View>
           ) : (
             <ActivityIndicator size={50} style={{marginTop: 50}} />
@@ -257,6 +316,58 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: 'grey',
     // alignSelf: 'center',
+  },
+  curOverlayContainer: {
+    position: 'absolute',
+    alignSelf: 'center',
+    top: 10,
+    backgroundColor: 'rgba(240,240,240,100)',
+    width: 150,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+    borderRadius: 10,
+    shadowColor: 'rgb(50, 50, 50)',
+    shadowOpacity: 0.5,
+    shadowRadius: 5,
+    shadowOffset: {
+      height: -1,
+      width: 0,
+    },
+    elevation: 5,
+  },
+  curOverlayIcon: {
+    color: 'rgba(50,50,200,100)',
+    fontSize: 20,
+    marginRight: 9,
+  },
+  curOverlayText: {
+    color: 'rgba(50,50,200,100)',
+    fontSize: 16,
+  },
+  myOverlayContainer: {
+    position: 'absolute',
+    left: 20,
+    bottom: 30,
+    backgroundColor: 'rgba(240,240,240,100)',
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 10,
+    shadowColor: 'rgb(50, 50, 50)',
+    shadowOpacity: 0.5,
+    shadowRadius: 5,
+    shadowOffset: {
+      height: -1,
+      width: 0,
+    },
+    elevation: 5,
+  },
+  myOverlayText: {
+    color: 'white',
+    fontSize: 18,
   },
 });
 

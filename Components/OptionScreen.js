@@ -1,6 +1,6 @@
 import React from 'react';
 import {View, StyleSheet, Text, AsyncStorage} from 'react-native';
-import {Card, CardItem, Switch} from 'native-base';
+import {Card, CardItem, Switch, Picker} from 'native-base';
 
 import ChoiceScreen from './ChoiceScreen';
 import GGDB from './Database';
@@ -11,6 +11,7 @@ class OptionScreen extends React.Component {
 
     this.state = {
       isDownload: false,
+      mapSearchLimit: '100',
       db: new GGDB(),
     };
 
@@ -19,10 +20,12 @@ class OptionScreen extends React.Component {
 
   initStatus = async () => {
     let isDownload = await AsyncStorage.getItem('isDownload');
+    let mapSearchLimit = await AsyncStorage.getItem('mapSearchLimit');
     // console.log(isDownload);
     // console.log(isDownload === 'true');
     this.setState({
       isDownload: isDownload === 'true',
+      mapSearchLimit: mapSearchLimit,
     });
   };
 
@@ -33,16 +36,42 @@ class OptionScreen extends React.Component {
       await db.deleteGgmoneyAll();
       await db.initMstSigun();
     } else {
-      await AsyncStorage.setItem('isDownload', 'true');
+      AsyncStorage.setItem('isDownload', 'true');
     }
     this.setState({isDownload: !isDownload});
   };
 
+  onMapSearchLimitChange = value => {
+    AsyncStorage.setItem('mapSearchLimit', value);
+    this.setState({mapSearchLimit: value});
+  };
+
   render() {
-    const {isDownload} = this.state;
+    const {isDownload, mapSearchLimit} = this.state;
     return (
       <View style={styles.container}>
         <View style={styles.topContainer}>
+          <Card>
+            <CardItem>
+              <View>
+                <View style={{flexDirection: 'row'}}>
+                  <Text style={styles.cardItemText}>지도 검색시 개수 제한</Text>
+
+                  <Picker
+                    mode="dropdown"
+                    placeholder="조회개수 선택"
+                    style={styles.mapLimitPicker}
+                    selectedValue={mapSearchLimit}
+                    onValueChange={this.onMapSearchLimitChange}>
+                    <Picker.Item label="100 개" value="100" />
+                    <Picker.Item label="300 개" value="300" />
+                    <Picker.Item label="500 개" value="500" />
+                    <Picker.Item label="1000 개" value="1000" />
+                  </Picker>
+                </View>
+              </View>
+            </CardItem>
+          </Card>
           <Card>
             <CardItem>
               <View>
@@ -96,6 +125,11 @@ const styles = StyleSheet.create({
   },
   cardItemText: {
     fontSize: 24,
+    paddingBottom: 10,
+    paddingRight: 20,
+  },
+  mapLimitPicker: {
+    width: 120,
     paddingBottom: 10,
     paddingRight: 20,
   },
