@@ -282,14 +282,18 @@ class MapScreenDb extends React.Component {
                   onPress={this.getCurrentPosition}>
                   <Icon name="md-locate" />
                 </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.curOverlayContainer}
-                  onPress={() => {
-                    this.searchData(this.state.region);
-                  }}>
-                  <Icon style={styles.curOverlayIcon} name="md-refresh" />
-                  <Text style={styles.curOverlayText}>현 지도에서 검색</Text>
-                </TouchableOpacity>
+                {!showList ? (
+                  <TouchableOpacity
+                    style={styles.curOverlayContainer}
+                    onPress={() => {
+                      this.searchData(this.state.region);
+                    }}>
+                    <Icon style={styles.curOverlayIcon} name="md-refresh" />
+                    <Text style={styles.curOverlayText}>현 지도에서 검색</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <></>
+                )}
                 <TouchableOpacity
                   style={styles.listOverlayContainer}
                   onPress={() => {

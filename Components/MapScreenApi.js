@@ -264,14 +264,18 @@ class SearchScreenApi extends React.Component {
                   onPress={this.getCurrentPosition}>
                   <Icon name="md-locate" />
                 </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.curOverlayContainer}
-                  onPress={() => {
-                    alert('옵션-다운로드 방식 사용 기능을 켜주세요');
-                  }}>
-                  <Icon style={styles.curOverlayIcon} name="md-refresh" />
-                  <Text style={styles.curOverlayText}>현 지도에서 검색</Text>
-                </TouchableOpacity>
+                {!showList ? (
+                  <TouchableOpacity
+                    style={styles.curOverlayContainer}
+                    onPress={() => {
+                      alert('옵션-다운로드 방식 사용 기능을 켜주세요');
+                    }}>
+                    <Icon style={styles.curOverlayIcon} name="md-refresh" />
+                    <Text style={styles.curOverlayText}>현 지도에서 검색</Text>
+                  </TouchableOpacity>
+                ) : (
+                  <></>
+                )}
                 <TouchableOpacity
                   style={styles.listOverlayContainer}
                   onPress={() => {

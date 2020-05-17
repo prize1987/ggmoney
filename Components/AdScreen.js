@@ -19,14 +19,14 @@ class AdScreen extends React.Component {
     admob()
       .setRequestConfiguration({
         // Update all future requests suitable for parental guidance
-        maxAdContentRating: MaxAdContentRating.MA,
+        maxAdContentRating: MaxAdContentRating.T,
 
         // Indicates that you want your content treated as child-directed for purposes of COPPA.
-        tagForChildDirectedTreatment: true,
+        // tagForChildDirectedTreatment: true,
 
         // Indicates that you want the ad request to be handled in a
         // manner suitable for users under the age of consent.
-        tagForUnderAgeOfConsent: true,
+        // tagForUnderAgeOfConsent: true,
       })
       .then(() => {
         // Request config successfully set!

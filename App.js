@@ -69,6 +69,11 @@ class App extends React.Component {
             <Footer>
               <FooterTab>
                 <Button
+                  style={
+                    activePage === 'search'
+                      ? styles.footerButtonActive
+                      : styles.footerButton
+                  }
                   vertical
                   active={activePage === 'search'}
                   onPress={async () => {
@@ -78,10 +83,23 @@ class App extends React.Component {
                       isDownload: dlcheck === 'true',
                     });
                   }}>
-                  <Icon active={activePage === 'search'} name="search" />
+                  <Icon
+                    style={
+                      activePage === 'search'
+                        ? styles.footerIconActive
+                        : styles.footerIcon
+                    }
+                    active={activePage === 'search'}
+                    name="search"
+                  />
                   <Text>매장 검색</Text>
                 </Button>
                 <Button
+                  style={
+                    activePage === 'map'
+                      ? styles.footerButtonActive
+                      : styles.footerButton
+                  }
                   vertical
                   active={activePage === 'map'}
                   onPress={async () => {
@@ -91,16 +109,37 @@ class App extends React.Component {
                       isDownload: dlcheck === 'true',
                     });
                   }}>
-                  <Icon active={activePage === 'map'} name="map" />
+                  <Icon
+                    style={
+                      activePage === 'map'
+                        ? styles.footerIconActive
+                        : styles.footerIcon
+                    }
+                    active={activePage === 'map'}
+                    name="map"
+                  />
                   <Text>지도 검색</Text>
                 </Button>
                 <Button
+                  style={
+                    activePage === 'option'
+                      ? styles.footerButtonActive
+                      : styles.footerButton
+                  }
                   vertical
                   active={activePage === 'option'}
                   onPress={() => {
                     this.setState({activePage: 'option'});
                   }}>
-                  <Icon active={activePage === 'option'} name="md-construct" />
+                  <Icon
+                    style={
+                      activePage === 'option'
+                        ? styles.footerIconActive
+                        : styles.footerIcon
+                    }
+                    active={activePage === 'option'}
+                    name="md-construct"
+                  />
                   <Text>옵션</Text>
                 </Button>
               </FooterTab>
@@ -124,6 +163,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     height: 60,
+  },
+  footerButton: {
+    backgroundColor: 'rgba(248, 248, 248, 1)',
+  },
+  footerButtonActive: {
+    backgroundColor: 'rgba(208, 225, 247, 1)',
+  },
+  footerIcon: {
+    color: 'rgba(107, 107, 107, 1)',
+  },
+  footerIconActive: {
+    color: 'rgba(47, 124, 246, 1)',
   },
 });
 
