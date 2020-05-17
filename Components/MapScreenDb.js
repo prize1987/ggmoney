@@ -6,8 +6,10 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   AsyncStorage,
+  FlatList,
+  Keyboard,
 } from 'react-native';
-import {Item, Label, Input, Icon} from 'native-base';
+import {Item, Label, Input, Icon, ListItem} from 'native-base';
 import CustomButton from './CustomButton';
 import GGDB from './Database';
 import Toast from 'react-native-root-toast';
@@ -27,6 +29,7 @@ class MapScreenDb extends React.Component {
       latitudeDelta: 0.02,
       longitudeDelta: 0.01,
     },
+    showList: false,
   };
 
   numToRender = 100;
@@ -37,11 +40,33 @@ class MapScreenDb extends React.Component {
     this.state.db = new GGDB();
 
     AsyncStorage.getItem('mapSearchLimit').then(res => {
-      console.log(res);
       this.numToRender = res ? res : 100;
-      console.log(this.numToRender);
     });
+
+    this.loadLastRegion();
   }
+
+  loadLastRegion = async () => {
+    AsyncStorage.getItem('lastLatitude').then(latitude => {
+      AsyncStorage.getItem('lastLongitude').then(longitude => {
+        AsyncStorage.getItem('lastLatitudeDelta').then(latitudeDelta => {
+          AsyncStorage.getItem('lastLongitudeDelta').then(longitudeDelta => {
+            if (latitude && longitude && latitudeDelta && longitudeDelta) {
+              let lastRegion = {
+                latitude: parseFloat(latitude),
+                longitude: parseFloat(longitude),
+                latitudeDelta: parseFloat(latitudeDelta),
+                longitudeDelta: parseFloat(longitudeDelta),
+              };
+              console.log(lastRegion);
+
+              this.setState({region: lastRegion});
+            }
+          });
+        });
+      });
+    });
+  };
 
   componentDidMount() {
     // this.searchData();
@@ -118,10 +143,10 @@ class MapScreenDb extends React.Component {
 
       if (minlat !== 9999 && minlon !== 9999) {
         region = {
-          latitude: (minlat + maxlat) / 2,
-          longitude: (minlon + maxlon) / 2,
-          latitudeDelta: maxlat - minlat,
-          longitudeDelta: maxlon - minlon,
+          latitude: area ? area.latitude : (minlat + maxlat) / 2,
+          longitude: area ? area.longitude : (minlon + maxlon) / 2,
+          latitudeDelta: area ? area.latitudeDelta : maxlat - minlat,
+          longitudeDelta: area ? area.longitudeDelta : maxlon - minlon,
         };
       }
     }
@@ -136,11 +161,15 @@ class MapScreenDb extends React.Component {
 
   onRegionChange = reg => {
     const {region} = this.state;
-    console.log(reg);
+    // console.log(reg);
     if (
       region.latitude.toFixed(6) !== reg.latitude.toFixed(6) ||
       region.longitude.toFixed(6) !== reg.longitude.toFixed(6)
     ) {
+      AsyncStorage.setItem('lastLatitude', reg.latitude.toString());
+      AsyncStorage.setItem('lastLongitude', reg.longitude.toString());
+      AsyncStorage.setItem('lastLatitudeDelta', reg.latitudeDelta.toString());
+      AsyncStorage.setItem('lastLongitudeDelta', reg.longitudeDelta.toString());
       this.setState({region: reg});
     }
   };
@@ -164,7 +193,8 @@ class MapScreenDb extends React.Component {
   };
 
   render() {
-    const {data, isLoaded, region} = this.state;
+    const {data, isLoaded, region, showList} = this.state;
+    this.markers = {};
 
     return (
       <>
@@ -189,65 +219,137 @@ class MapScreenDb extends React.Component {
             onPress={() => this.searchData()}
           />
         </View>
-        <View style={styles.listContainer}>
+        <View style={styles.container}>
           {isLoaded ? (
             <View style={styles.container}>
-              <MapView
-                style={styles.container}
-                provider={PROVIDER_GOOGLE}
-                initialRegion={region}
-                region={region}
-                onRegionChangeComplete={this.onRegionChange}
-                showsUserLocation={true}>
-                {data ? (
-                  data.map((item, index) => {
-                    if (
-                      item.REFINE_WGS84_LAT !== null &&
-                      item.REFINE_WGS84_LOGT !== null
-                    ) {
+              <View style={styles.container}>
+                <MapView
+                  style={styles.container}
+                  provider={PROVIDER_GOOGLE}
+                  initialRegion={region}
+                  region={region}
+                  onRegionChangeComplete={this.onRegionChange}
+                  onPress={e => {
+                    Keyboard.dismiss();
+                    //   console.log(e.nativeEvent.action);
+                    //   console.log(e._targetInst.return);
+                    //   this.markers[e._targetInst.return.key].showCallout();
+                  }}
+                  showsUserLocation={true}>
+                  {data ? (
+                    data.map((item, index) => {
+                      if (
+                        item.REFINE_WGS84_LAT !== null &&
+                        item.REFINE_WGS84_LOGT !== null
+                      ) {
+                        return (
+                          <Marker
+                            key={index}
+                            coordinate={{
+                              latitude: parseFloat(item.REFINE_WGS84_LAT),
+                              longitude: parseFloat(item.REFINE_WGS84_LOGT),
+                            }}
+                            ref={ref => {
+                              this.markers[index] = ref;
+                            }}>
+                            <Callout>
+                              <Text style={styles.mapInfoText}>
+                                {item.CMPNM_NM}
+                              </Text>
+                              <Text style={styles.mapInfoSub}>
+                                {item.INDUTYPE_NM}
+                              </Text>
+                              <Text style={styles.mapInfoSub}>
+                                {item.REFINE_LOTNO_ADDR}
+                              </Text>
+                              <Text style={styles.mapInfoSub}>
+                                {item.REFINE_ROADNM_ADDR}
+                              </Text>
+                              <Text style={styles.mapInfoSub}>
+                                {item.TELNO}
+                              </Text>
+                            </Callout>
+                          </Marker>
+                        );
+                      }
+                    })
+                  ) : (
+                    <></>
+                  )}
+                </MapView>
+                <TouchableOpacity
+                  style={styles.myOverlayContainer}
+                  onPress={this.getCurrentPosition}>
+                  <Icon name="md-locate" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.curOverlayContainer}
+                  onPress={() => {
+                    this.searchData(this.state.region);
+                  }}>
+                  <Icon style={styles.curOverlayIcon} name="md-refresh" />
+                  <Text style={styles.curOverlayText}>현 지도에서 검색</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.listOverlayContainer}
+                  onPress={() => {
+                    this.setState({showList: !showList});
+                  }}>
+                  <Icon style={styles.curOverlayIcon} name="md-list" />
+                  <Text style={styles.curOverlayText}>
+                    {showList ? '목록 숨기기' : '목록 표시'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              {showList ? (
+                <View style={styles.listContainer}>
+                  <Text>{data.length}건</Text>
+                  <FlatList
+                    style={styles.container}
+                    data={data}
+                    // initialNumToRender={numToRender}
+                    // onEndReachedThreshold={1}
+                    // onEndReached={this.onEndReached}
+                    renderItem={({item, index}) => {
                       return (
-                        <Marker
-                          key={index}
-                          coordinate={{
-                            latitude: parseFloat(item.REFINE_WGS84_LAT),
-                            longitude: parseFloat(item.REFINE_WGS84_LOGT),
-                          }}>
-                          <Callout>
-                            <Text style={styles.mapInfoText}>
+                        <ListItem style={{flex: 1}}>
+                          <TouchableOpacity
+                            style={styles.listItemContainer}
+                            onPress={() => {
+                              let curRegion = {
+                                latitude: parseFloat(item.REFINE_WGS84_LAT),
+                                longitude: parseFloat(item.REFINE_WGS84_LOGT),
+                                latitudeDelta: region.latitudeDelta,
+                                longitudeDelta: region.longitudeDelta,
+                              };
+                              this.setState({
+                                region: curRegion,
+                              });
+                              this.markers[index].showCallout();
+                            }}>
+                            <Text style={styles.itemTitle}>
                               {item.CMPNM_NM}
                             </Text>
-                            <Text style={styles.mapInfoSub}>
+                            <Text style={styles.itemSub}>
                               {item.INDUTYPE_NM}
                             </Text>
-                            <Text style={styles.mapInfoSub}>
+                            <Text style={styles.itemSub}>
                               {item.REFINE_LOTNO_ADDR}
                             </Text>
-                            <Text style={styles.mapInfoSub}>
+                            <Text style={styles.itemSub}>
                               {item.REFINE_ROADNM_ADDR}
                             </Text>
-                            <Text style={styles.mapInfoSub}>{item.TELNO}</Text>
-                          </Callout>
-                        </Marker>
+                            <Text style={styles.itemSub}>{item.TELNO}</Text>
+                            {/* <Text>{this.state.fetchCnt}</Text> */}
+                          </TouchableOpacity>
+                        </ListItem>
                       );
-                    }
-                  })
-                ) : (
-                  <></>
-                )}
-              </MapView>
-              <TouchableOpacity
-                style={styles.myOverlayContainer}
-                onPress={this.getCurrentPosition}>
-                <Icon name="md-locate" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.curOverlayContainer}
-                onPress={() => {
-                  this.searchData(this.state.region);
-                }}>
-                <Icon style={styles.curOverlayIcon} name="md-refresh" />
-                <Text style={styles.curOverlayText}>현 지도에서 검색</Text>
-              </TouchableOpacity>
+                    }}
+                  />
+                </View>
+              ) : (
+                <></>
+              )}
             </View>
           ) : (
             <ActivityIndicator size={50} style={{marginTop: 50}} />
@@ -282,8 +384,14 @@ const styles = StyleSheet.create({
     marginVertical: 1,
     marginHorizontal: 1,
   },
+  listItemContainer: {
+    borderWidth: 1,
+    flex: 1,
+    padding: 10,
+    borderRadius: 10,
+  },
   itemTitle: {
-    fontSize: 24,
+    fontSize: 16,
     fontWeight: 'bold',
   },
   itemSub: {
@@ -304,8 +412,9 @@ const styles = StyleSheet.create({
     // paddingLeft: 200,
   },
   listContainer: {
-    flex: 1,
-    alignContent: 'stretch',
+    flex: 0.6,
+    padding: 10,
+    borderWidth: 1,
     // backgroundColor: '#2fd6c2',
   },
   mapInfoText: {
@@ -368,6 +477,26 @@ const styles = StyleSheet.create({
   myOverlayText: {
     color: 'white',
     fontSize: 18,
+  },
+  listOverlayContainer: {
+    position: 'absolute',
+    alignSelf: 'center',
+    bottom: 10,
+    backgroundColor: 'rgba(240,240,240,100)',
+    width: 150,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+    borderRadius: 10,
+    shadowColor: 'rgb(50, 50, 50)',
+    shadowOpacity: 0.5,
+    shadowRadius: 5,
+    shadowOffset: {
+      height: -1,
+      width: 0,
+    },
+    elevation: 5,
   },
 });
 

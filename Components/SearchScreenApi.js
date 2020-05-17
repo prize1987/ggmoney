@@ -173,6 +173,7 @@ class SearchScreenApi extends React.Component {
                   <ListItem style={{flex: 1}}>
                     <TouchableOpacity style={styles.itemArea}>
                       <Text style={styles.itemTitle}>{item.CMPNM_NM}</Text>
+                      <Text style={styles.itemSub}>{item.INDUTYPE_NM}</Text>
                       <Text style={styles.itemSub}>
                         {item.REFINE_LOTNO_ADDR}
                       </Text>
@@ -227,7 +228,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 1,
   },
   itemTitle: {
-    fontSize: 24,
+    fontSize: 19,
     fontWeight: 'bold',
   },
   itemSub: {

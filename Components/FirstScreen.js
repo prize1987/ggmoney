@@ -15,7 +15,7 @@ class FirstScreen extends React.Component {
   componentDidMount = () => {
     return setTimeout(() => {
       this.setState({logoVisible: false});
-    }, 500);
+    }, 1000);
   };
 
   render() {

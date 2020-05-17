@@ -124,12 +124,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cardItemText: {
-    fontSize: 24,
+    fontSize: 19,
     paddingBottom: 10,
     paddingRight: 20,
   },
   mapLimitPicker: {
-    width: 120,
+    width: 160,
     paddingBottom: 10,
     paddingRight: 20,
   },

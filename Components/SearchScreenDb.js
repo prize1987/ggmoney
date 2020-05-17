@@ -117,7 +117,7 @@ class SearchScreenDb extends React.Component {
         <View style={styles.listContainer}>
           {isLoaded ? (
             <FlatList
-              style={styles.container}
+              style={styles.list}
               data={data}
               initialNumToRender={numToRender}
               onEndReachedThreshold={1}
@@ -172,12 +172,15 @@ const styles = StyleSheet.create({
     marginHorizontal: 1,
   },
   itemTitle: {
-    fontSize: 24,
+    fontSize: 19,
     fontWeight: 'bold',
   },
   itemSub: {
     fontSize: 13,
     color: '#595959',
+  },
+  itemArea: {
+    flex: 1,
   },
   icon: {
     fontSize: 24,
@@ -196,6 +199,11 @@ const styles = StyleSheet.create({
     flex: 1,
     alignContent: 'stretch',
     // backgroundColor: '#2fd6c2',
+  },
+  list: {
+    flex: 1,
+    // backgroundColor: 'red',
+    alignSelf: 'stretch',
   },
 });
 

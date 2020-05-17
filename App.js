@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Text,
   AsyncStorage,
+  Platform,
 } from 'react-native';
 import {Footer, FooterTab, Button, Icon} from 'native-base';
 

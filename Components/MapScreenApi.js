@@ -6,8 +6,9 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   AsyncStorage,
+  FlatList,
 } from 'react-native';
-import {Item, Label, Input, Icon} from 'native-base';
+import {Item, Label, Input, Icon, ListItem} from 'native-base';
 import ApiMain from './ApiMain';
 import Toast from 'react-native-root-toast';
 
@@ -30,6 +31,7 @@ class SearchScreenApi extends React.Component {
       latitudeDelta: 0.02,
       longitudeDelta: 0.01,
     },
+    showList: false,
   };
 
   numToRender = 100;
@@ -40,9 +42,7 @@ class SearchScreenApi extends React.Component {
     this.state.api = new ApiMain();
 
     AsyncStorage.getItem('mapSearchLimit').then(res => {
-      console.log(res);
       this.numToRender = res ? res : 100;
-      console.log(this.numToRender);
     });
   }
 
@@ -172,7 +172,8 @@ class SearchScreenApi extends React.Component {
   };
 
   render() {
-    const {data, mode, region} = this.state;
+    const {data, mode, region, showList} = this.state;
+    this.markers = {};
 
     return (
       <>
@@ -204,71 +205,138 @@ class SearchScreenApi extends React.Component {
             />
           </Item>
         </View>
-        <View style={styles.listContainer}>
+        <View style={styles.container}>
           {mode === 'loaded' ? (
             <View style={styles.container}>
-              <MapView
-                style={styles.container}
-                provider={PROVIDER_GOOGLE}
-                // initialRegion={region}
-                region={region}
-                clusteringEnabled={false}
-                spiralEnabled={true}
-                onRegionChangeComplete={this.onRegionChange}
-                showsUserLocation={true}>
-                {data ? (
-                  data.map((item, index) => {
-                    if (
-                      item.REFINE_WGS84_LAT !== null &&
-                      item.REFINE_WGS84_LOGT !== null
-                    ) {
+              <View style={styles.container}>
+                <MapView
+                  style={styles.container}
+                  provider={PROVIDER_GOOGLE}
+                  // initialRegion={region}
+                  region={region}
+                  clusteringEnabled={false}
+                  spiralEnabled={true}
+                  onRegionChangeComplete={this.onRegionChange}
+                  showsUserLocation={true}>
+                  {data ? (
+                    data.map((item, index) => {
+                      if (
+                        item.REFINE_WGS84_LAT !== null &&
+                        item.REFINE_WGS84_LOGT !== null
+                      ) {
+                        return (
+                          <Marker
+                            key={index}
+                            coordinate={{
+                              latitude: parseFloat(item.REFINE_WGS84_LAT),
+                              longitude: parseFloat(item.REFINE_WGS84_LOGT),
+                            }}
+                            ref={ref => {
+                              this.markers[index] = ref;
+                            }}>
+                            <Callout>
+                              <Text style={styles.mapInfoText}>
+                                {item.CMPNM_NM}
+                              </Text>
+                              <Text style={styles.mapInfoSub}>
+                                {item.INDUTYPE_NM}
+                              </Text>
+                              <Text style={styles.mapInfoSub}>
+                                {item.REFINE_LOTNO_ADDR}
+                              </Text>
+                              <Text style={styles.mapInfoSub}>
+                                {item.REFINE_ROADNM_ADDR}
+                              </Text>
+                              <Text style={styles.mapInfoSub}>
+                                {item.TELNO}
+                              </Text>
+                            </Callout>
+                          </Marker>
+                        );
+                      }
+                    })
+                  ) : (
+                    <></>
+                  )}
+                </MapView>
+                <TouchableOpacity
+                  style={styles.myOverlayContainer}
+                  onPress={this.getCurrentPosition}>
+                  <Icon name="md-locate" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.curOverlayContainer}
+                  onPress={() => {
+                    alert('옵션-다운로드 방식 사용 기능을 켜주세요');
+                  }}>
+                  <Icon style={styles.curOverlayIcon} name="md-refresh" />
+                  <Text style={styles.curOverlayText}>현 지도에서 검색</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.listOverlayContainer}
+                  onPress={() => {
+                    this.setState({showList: !showList});
+                  }}>
+                  <Icon style={styles.curOverlayIcon} name="md-list" />
+                  <Text style={styles.curOverlayText}>
+                    {showList ? '목록 숨기기' : '목록 표시'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              {showList ? (
+                <View style={styles.listContainer}>
+                  <Text>{data.length}건</Text>
+                  <FlatList
+                    style={styles.container}
+                    data={data}
+                    // initialNumToRender={numToRender}
+                    // onEndReachedThreshold={1}
+                    // onEndReached={this.onEndReached}
+                    renderItem={({item, index}) => {
                       return (
-                        <Marker
-                          coordinate={{
-                            latitude: parseFloat(item.REFINE_WGS84_LAT),
-                            longitude: parseFloat(item.REFINE_WGS84_LOGT),
-                          }}>
-                          <Callout>
-                            <Text style={styles.mapInfoText}>
+                        <ListItem style={{flex: 1}}>
+                          <TouchableOpacity
+                            style={styles.listItemContainer}
+                            onPress={() => {
+                              let curRegion = {
+                                latitude: parseFloat(item.REFINE_WGS84_LAT),
+                                longitude: parseFloat(item.REFINE_WGS84_LOGT),
+                                latitudeDelta: region.latitudeDelta,
+                                longitudeDelta: region.longitudeDelta,
+                              };
+                              this.setState({
+                                region: curRegion,
+                              });
+                              this.markers[index].showCallout();
+                            }}>
+                            <Text style={styles.itemTitle}>
                               {item.CMPNM_NM}
                             </Text>
-                            <Text style={styles.mapInfoSub}>
+                            <Text style={styles.itemSub}>
                               {item.INDUTYPE_NM}
                             </Text>
-                            <Text style={styles.mapInfoSub}>
+                            <Text style={styles.itemSub}>
                               {item.REFINE_LOTNO_ADDR}
                             </Text>
-                            <Text style={styles.mapInfoSub}>
+                            <Text style={styles.itemSub}>
                               {item.REFINE_ROADNM_ADDR}
                             </Text>
-                            <Text style={styles.mapInfoSub}>{item.TELNO}</Text>
-                          </Callout>
-                        </Marker>
+                            <Text style={styles.itemSub}>{item.TELNO}</Text>
+                            {/* <Text>{this.state.fetchCnt}</Text> */}
+                          </TouchableOpacity>
+                        </ListItem>
                       );
-                    }
-                  })
-                ) : (
-                  <></>
-                )}
-              </MapView>
-              <TouchableOpacity
-                style={styles.myOverlayContainer}
-                onPress={this.getCurrentPosition}>
-                <Icon name="md-locate" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.curOverlayContainer}
-                onPress={() => {
-                  alert('옵션-다운로드 방식 사용 기능을 켜주세요');
-                }}>
-                <Icon style={styles.curOverlayIcon} name="md-refresh" />
-                <Text style={styles.curOverlayText}>현 지도에서 검색</Text>
-              </TouchableOpacity>
+                    }}
+                  />
+                </View>
+              ) : (
+                <></>
+              )}
             </View>
           ) : mode === 'loading' ? (
             <ActivityIndicator size={50} style={{marginTop: 50}} />
           ) : (
-            <View>
+            <View style={styles.infoContainer}>
               <Text style={styles.infoText}>검색어를 입력해주세요.</Text>
               <Text />
               <Text style={styles.infoSub}>
@@ -315,16 +383,31 @@ const styles = StyleSheet.create({
     color: 'gray',
     // marginHorizontal:,
   },
-  listContainer: {
+  infoContainer: {
     flex: 1,
     alignContent: 'stretch',
     // alignItems: 'center',
     justifyContent: 'center',
     // backgroundColor: '#2fd6c2',
   },
+  listContainer: {
+    flex: 1,
+    alignContent: 'stretch',
+    // backgroundColor: '#2fd6c2',
+  },
   infoText: {
     fontSize: 18,
     alignSelf: 'center',
+  },
+  listItemContainer: {
+    borderWidth: 1,
+    flex: 1,
+    padding: 10,
+    borderRadius: 10,
+  },
+  itemTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
   },
   infoSub: {
     fontSize: 14,
@@ -391,6 +474,26 @@ const styles = StyleSheet.create({
   myOverlayText: {
     color: 'white',
     fontSize: 18,
+  },
+  listOverlayContainer: {
+    position: 'absolute',
+    alignSelf: 'center',
+    bottom: 10,
+    backgroundColor: 'rgba(240,240,240,100)',
+    width: 150,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+    borderRadius: 10,
+    shadowColor: 'rgb(50, 50, 50)',
+    shadowOpacity: 0.5,
+    shadowRadius: 5,
+    shadowOffset: {
+      height: -1,
+      width: 0,
+    },
+    elevation: 5,
   },
 });
 

@@ -355,6 +355,7 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingVertical: 20,
+    paddingHorizontal: 30,
   },
   itemContainer: {
     flex: 1,
@@ -365,7 +366,7 @@ const styles = StyleSheet.create({
     marginVertical: 10,
   },
   itemText: {
-    fontSize: 24,
+    fontSize: 19,
     width: 100,
   },
   updateCheckContainer: {
