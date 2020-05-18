@@ -8,6 +8,7 @@ import {
   AsyncStorage,
   FlatList,
   Keyboard,
+  Modal,
 } from 'react-native';
 import {Item, Label, Input, Icon, ListItem} from 'native-base';
 import CustomButton from './CustomButton';
@@ -15,6 +16,8 @@ import GGDB from './Database';
 import Toast from 'react-native-root-toast';
 import Geolocation from '@react-native-community/geolocation';
 import MapView, {PROVIDER_GOOGLE, Marker, Callout} from 'react-native-maps';
+
+import StoreInfoModal from './StoreInfoModal';
 
 class MapScreenDb extends React.Component {
   state = {
@@ -30,6 +33,8 @@ class MapScreenDb extends React.Component {
       longitudeDelta: 0.01,
     },
     showList: false,
+    modalOpen: false,
+    selectedItem: {},
   };
 
   numToRender = 100;
@@ -42,8 +47,6 @@ class MapScreenDb extends React.Component {
     AsyncStorage.getItem('mapSearchLimit').then(res => {
       this.numToRender = res ? res : 100;
     });
-
-    this.loadLastRegion();
   }
 
   loadLastRegion = async () => {
@@ -68,9 +71,23 @@ class MapScreenDb extends React.Component {
     });
   };
 
+  loadAddrRequest = async () => {
+    AsyncStorage.getItem('addrRequest').then(addr => {
+      if (addr) {
+        this.setState({searchCon: addr}, () => {
+          this.searchData();
+          AsyncStorage.removeItem('addrRequest');
+        });
+      }
+    });
+  };
+
   componentDidMount() {
     // this.searchData();
     // console.log(this.props.numToRender);
+    this.loadLastRegion();
+
+    this.loadAddrRequest();
   }
 
   showToast(msg, dur = Toast.durations.LONG, pos = Toast.positions.BOTTOM) {
@@ -145,8 +162,12 @@ class MapScreenDb extends React.Component {
         region = {
           latitude: area ? area.latitude : (minlat + maxlat) / 2,
           longitude: area ? area.longitude : (minlon + maxlon) / 2,
-          latitudeDelta: area ? area.latitudeDelta : maxlat - minlat,
-          longitudeDelta: area ? area.longitudeDelta : maxlon - minlon,
+          latitudeDelta: area
+            ? area.latitudeDelta
+            : Math.max(maxlat - minlat, 0.002),
+          longitudeDelta: area
+            ? area.longitudeDelta
+            : Math.max(maxlon - minlon, 0.002),
         };
       }
     }
@@ -193,11 +214,27 @@ class MapScreenDb extends React.Component {
   };
 
   render() {
-    const {data, isLoaded, region, showList} = this.state;
+    const {data, isLoaded, region, showList, modalOpen} = this.state;
     this.markers = {};
 
     return (
       <>
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={modalOpen}
+          onRequestClose={() => {
+            console.log('Modal has been closed.');
+          }}>
+          <StoreInfoModal
+            item={this.state.selectedItem}
+            onClose={() => {
+              this.setState({modalOpen: !modalOpen});
+            }}
+            showToast={this.showToast}
+          />
+        </Modal>
+
         <View style={styles.searchContainer}>
           <Item style={styles.textInput} inlineLabel>
             <Label>
@@ -205,11 +242,13 @@ class MapScreenDb extends React.Component {
             </Label>
             <Input
               placeholder="키워드 검색 (띄어쓰기로 구분)"
+              value={this.state.searchCon}
               onChangeText={text => {
                 this.setState({searchCon: text});
               }}
               onSubmitEditing={() => this.searchData()}
               returnKeyType="search"
+              clearButtonMode={true}
             />
           </Item>
           <CustomButton
@@ -294,16 +333,20 @@ class MapScreenDb extends React.Component {
                 ) : (
                   <></>
                 )}
-                <TouchableOpacity
-                  style={styles.listOverlayContainer}
-                  onPress={() => {
-                    this.setState({showList: !showList});
-                  }}>
-                  <Icon style={styles.curOverlayIcon} name="md-list" />
-                  <Text style={styles.curOverlayText}>
-                    {showList ? '목록 숨기기' : '목록 표시'}
-                  </Text>
-                </TouchableOpacity>
+                {data.length > 0 ? (
+                  <TouchableOpacity
+                    style={styles.listOverlayContainer}
+                    onPress={() => {
+                      this.setState({showList: !showList});
+                    }}>
+                    <Icon style={styles.curOverlayIcon} name="md-list" />
+                    <Text style={styles.curOverlayText}>
+                      {showList ? '목록 숨기기' : '목록 표시'}
+                    </Text>
+                  </TouchableOpacity>
+                ) : (
+                  <></>
+                )}
               </View>
               {showList ? (
                 <View style={styles.listContainer}>
@@ -320,16 +363,29 @@ class MapScreenDb extends React.Component {
                           <TouchableOpacity
                             style={styles.listItemContainer}
                             onPress={() => {
-                              let curRegion = {
-                                latitude: parseFloat(item.REFINE_WGS84_LAT),
-                                longitude: parseFloat(item.REFINE_WGS84_LOGT),
-                                latitudeDelta: region.latitudeDelta,
-                                longitudeDelta: region.longitudeDelta,
-                              };
+                              if (
+                                item.REFINE_WGS84_LAT &&
+                                item.REFINE_WGS84_LOGT
+                              ) {
+                                let curRegion = {
+                                  latitude: parseFloat(item.REFINE_WGS84_LAT),
+                                  longitude: parseFloat(item.REFINE_WGS84_LOGT),
+                                  latitudeDelta: region.latitudeDelta,
+                                  longitudeDelta: region.longitudeDelta,
+                                };
+                                this.setState({
+                                  region: curRegion,
+                                });
+                                this.markers[index].showCallout();
+                              } else {
+                                this.showToast('좌표 정보가 없습니다.');
+                              }
+                            }}
+                            onLongPress={() => {
                               this.setState({
-                                region: curRegion,
+                                modalOpen: true,
+                                selectedItem: item,
                               });
-                              this.markers[index].showCallout();
                             }}>
                             <Text style={styles.itemTitle}>
                               {item.CMPNM_NM}

@@ -30,11 +30,15 @@ class App extends React.Component {
 
   initStatus = async () => {
     let isDownload = await AsyncStorage.getItem('isDownload');
-    // console.log(isDownload);
-    // console.log(isDownload === 'true');
     this.setState({
       isDownload: isDownload === 'true',
     });
+  };
+
+  callMapSearch = async addr => {
+    await AsyncStorage.setItem('addrRequest', addr);
+
+    this.setState({activePage: 'map'});
   };
 
   render() {
@@ -50,9 +54,9 @@ class App extends React.Component {
             <View style={styles.bodyContainer}>
               {activePage === 'search' ? (
                 isDownload ? (
-                  <SearchScreenDb />
+                  <SearchScreenDb callMapSearch={this.callMapSearch} />
                 ) : (
-                  <SearchScreenApi />
+                  <SearchScreenApi callMapSearch={this.callMapSearch} />
                 )
               ) : activePage === 'map' ? (
                 isDownload ? (
@@ -138,7 +142,7 @@ class App extends React.Component {
                         : styles.footerIcon
                     }
                     active={activePage === 'option'}
-                    name="md-construct"
+                    name="md-settings"
                   />
                   <Text>옵션</Text>
                 </Button>

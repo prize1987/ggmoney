@@ -6,11 +6,13 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   FlatList,
+  Modal,
 } from 'react-native';
 import {Item, Label, Input, Icon, ListItem} from 'native-base';
 import CustomButton from './CustomButton';
 import GGDB from './Database';
 import Toast from 'react-native-root-toast';
+import StoreInfoModal from './StoreInfoModal';
 
 class SearchScreenDb extends React.Component {
   static defaultProps = {numToRender: 20};
@@ -21,6 +23,8 @@ class SearchScreenDb extends React.Component {
     fetchCnt: 0,
     totalCnt: 0,
     isLoaded: false,
+    modalOpen: false,
+    selectedItem: {},
   };
 
   constructor(props) {
@@ -89,10 +93,27 @@ class SearchScreenDb extends React.Component {
   };
   render() {
     const {numToRender} = this.props;
-    const {data, isLoaded, fetchCnt, totalCnt} = this.state;
+    const {data, isLoaded, modalOpen} = this.state;
 
     return (
       <>
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={modalOpen}
+          onRequestClose={() => {
+            console.log('Modal has been closed.');
+          }}>
+          <StoreInfoModal
+            item={this.state.selectedItem}
+            onClose={() => {
+              this.setState({modalOpen: !modalOpen});
+            }}
+            showToast={this.showToast}
+            callMapSearch={this.props.callMapSearch}
+            mapButtonEnabled={true}
+          />
+        </Modal>
         <View style={styles.searchContainer}>
           <Item style={styles.textInput} inlineLabel>
             <Label>
@@ -105,6 +126,7 @@ class SearchScreenDb extends React.Component {
               }}
               onSubmitEditing={() => this.getInitData()}
               returnKeyType="search"
+              clearButtonMode={true}
             />
           </Item>
           <CustomButton
@@ -125,7 +147,11 @@ class SearchScreenDb extends React.Component {
               renderItem={({item}) => {
                 return (
                   <ListItem style={{flex: 1}}>
-                    <TouchableOpacity style={styles.itemArea}>
+                    <TouchableOpacity
+                      style={styles.itemArea}
+                      onPress={() => {
+                        this.setState({modalOpen: true, selectedItem: item});
+                      }}>
                       <Text style={styles.itemTitle}>{item.CMPNM_NM}</Text>
                       <Text style={styles.itemSub}>{item.INDUTYPE_NM}</Text>
                       <Text style={styles.itemSub}>

@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   AsyncStorage,
   FlatList,
+  Modal,
 } from 'react-native';
 import {Item, Label, Input, Icon, ListItem} from 'native-base';
 import ApiMain from './ApiMain';
@@ -14,6 +15,8 @@ import Toast from 'react-native-root-toast';
 
 import Geolocation from '@react-native-community/geolocation';
 import MapView, {PROVIDER_GOOGLE, Marker, Callout} from 'react-native-maps';
+
+import StoreInfoModal from './StoreInfoModal';
 
 class SearchScreenApi extends React.Component {
   state = {
@@ -32,6 +35,8 @@ class SearchScreenApi extends React.Component {
       longitudeDelta: 0.01,
     },
     showList: false,
+    modalOpen: false,
+    selectedItem: {},
   };
 
   numToRender = 100;
@@ -46,9 +51,22 @@ class SearchScreenApi extends React.Component {
     });
   }
 
+  loadAddrRequest = async () => {
+    AsyncStorage.getItem('addrRequest').then(addr => {
+      if (addr) {
+        this.setState({searchConAddr: addr}, () => {
+          this.getInitData();
+          AsyncStorage.removeItem('addrRequest');
+        });
+      }
+    });
+  };
+
   componentDidMount() {
     // this.getInitData();
     // console.log(this.props.numToRender);
+
+    this.loadAddrRequest();
   }
 
   showToast(msg, dur = Toast.durations.LONG, pos = Toast.positions.BOTTOM) {
@@ -125,8 +143,8 @@ class SearchScreenApi extends React.Component {
         region = {
           latitude: (minlat + maxlat) / 2,
           longitude: (minlon + maxlon) / 2,
-          latitudeDelta: maxlat - minlat,
-          longitudeDelta: maxlon - minlon,
+          latitudeDelta: Math.max(maxlat - minlat, 0.002),
+          longitudeDelta: Math.max(maxlon - minlon, 0.002),
         };
       }
     }
@@ -172,11 +190,27 @@ class SearchScreenApi extends React.Component {
   };
 
   render() {
-    const {data, mode, region, showList} = this.state;
+    const {data, mode, region, showList, modalOpen} = this.state;
     this.markers = {};
 
     return (
       <>
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={modalOpen}
+          onRequestClose={() => {
+            console.log('Modal has been closed.');
+          }}>
+          <StoreInfoModal
+            item={this.state.selectedItem}
+            onClose={() => {
+              this.setState({modalOpen: !modalOpen});
+            }}
+            showToast={this.showToast}
+          />
+        </Modal>
+
         <View style={styles.searchContainer}>
           <Item style={styles.textInput} inlineLabel>
             <Label>
@@ -189,6 +223,8 @@ class SearchScreenApi extends React.Component {
               }}
               onSubmitEditing={() => this.getInitData()}
               returnKeyType="search"
+              value={this.state.searchConName}
+              clearButtonMode={true}
             />
           </Item>
           <Item style={styles.textInput} inlineLabel>
@@ -202,6 +238,8 @@ class SearchScreenApi extends React.Component {
               }}
               onSubmitEditing={() => this.getInitData()}
               returnKeyType="search"
+              value={this.state.searchConAddr}
+              clearButtonMode={true}
             />
           </Item>
         </View>
@@ -276,16 +314,20 @@ class SearchScreenApi extends React.Component {
                 ) : (
                   <></>
                 )}
-                <TouchableOpacity
-                  style={styles.listOverlayContainer}
-                  onPress={() => {
-                    this.setState({showList: !showList});
-                  }}>
-                  <Icon style={styles.curOverlayIcon} name="md-list" />
-                  <Text style={styles.curOverlayText}>
-                    {showList ? '목록 숨기기' : '목록 표시'}
-                  </Text>
-                </TouchableOpacity>
+                {data.length > 0 ? (
+                  <TouchableOpacity
+                    style={styles.listOverlayContainer}
+                    onPress={() => {
+                      this.setState({showList: !showList});
+                    }}>
+                    <Icon style={styles.curOverlayIcon} name="md-list" />
+                    <Text style={styles.curOverlayText}>
+                      {showList ? '목록 숨기기' : '목록 표시'}
+                    </Text>
+                  </TouchableOpacity>
+                ) : (
+                  <></>
+                )}
               </View>
               {showList ? (
                 <View style={styles.listContainer}>
@@ -302,16 +344,29 @@ class SearchScreenApi extends React.Component {
                           <TouchableOpacity
                             style={styles.listItemContainer}
                             onPress={() => {
-                              let curRegion = {
-                                latitude: parseFloat(item.REFINE_WGS84_LAT),
-                                longitude: parseFloat(item.REFINE_WGS84_LOGT),
-                                latitudeDelta: region.latitudeDelta,
-                                longitudeDelta: region.longitudeDelta,
-                              };
+                              if (
+                                item.REFINE_WGS84_LAT &&
+                                item.REFINE_WGS84_LOGT
+                              ) {
+                                let curRegion = {
+                                  latitude: parseFloat(item.REFINE_WGS84_LAT),
+                                  longitude: parseFloat(item.REFINE_WGS84_LOGT),
+                                  latitudeDelta: region.latitudeDelta,
+                                  longitudeDelta: region.longitudeDelta,
+                                };
+                                this.setState({
+                                  region: curRegion,
+                                });
+                                this.markers[index].showCallout();
+                              } else {
+                                this.showToast('좌표 정보가 없습니다.');
+                              }
+                            }}
+                            onLongPress={() => {
                               this.setState({
-                                region: curRegion,
+                                modalOpen: true,
+                                selectedItem: item,
                               });
-                              this.markers[index].showCallout();
                             }}>
                             <Text style={styles.itemTitle}>
                               {item.CMPNM_NM}

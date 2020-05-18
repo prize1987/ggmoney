@@ -6,10 +6,13 @@ import {
   ActivityIndicator,
   TouchableOpacity,
   FlatList,
+  Modal,
 } from 'react-native';
 import {Item, Label, Input, Icon, ListItem, CheckBox} from 'native-base';
 import ApiMain from './ApiMain';
 import Toast from 'react-native-root-toast';
+
+import StoreInfoModal from './StoreInfoModal';
 
 class SearchScreenApi extends React.Component {
   static defaultProps = {numToRender: 50};
@@ -23,6 +26,8 @@ class SearchScreenApi extends React.Component {
     totalCnt: 0,
     nextIndex: 1,
     mode: 'start',
+    modalOpen: false,
+    selectedItem: {},
   };
 
   constructor(props) {
@@ -128,10 +133,27 @@ class SearchScreenApi extends React.Component {
   };
   render() {
     const {numToRender} = this.props;
-    const {data, mode} = this.state;
+    const {data, mode, modalOpen} = this.state;
 
     return (
       <>
+        <Modal
+          animationType="fade"
+          transparent={true}
+          visible={modalOpen}
+          onRequestClose={() => {
+            console.log('Modal has been closed.');
+          }}>
+          <StoreInfoModal
+            item={this.state.selectedItem}
+            onClose={() => {
+              this.setState({modalOpen: !modalOpen});
+            }}
+            showToast={this.showToast}
+            callMapSearch={this.props.callMapSearch}
+            mapButtonEnabled={true}
+          />
+        </Modal>
         <View style={styles.searchContainer}>
           <Item style={styles.textInput} inlineLabel>
             <Label>
@@ -144,6 +166,7 @@ class SearchScreenApi extends React.Component {
               }}
               onSubmitEditing={() => this.getInitData()}
               returnKeyType="search"
+              clearButtonMode={true}
             />
           </Item>
           <Item style={styles.textInput} inlineLabel>
@@ -157,6 +180,7 @@ class SearchScreenApi extends React.Component {
               }}
               onSubmitEditing={() => this.getInitData()}
               returnKeyType="search"
+              clearButtonMode={true}
             />
           </Item>
         </View>
@@ -171,7 +195,11 @@ class SearchScreenApi extends React.Component {
               renderItem={({item}) => {
                 return (
                   <ListItem style={{flex: 1}}>
-                    <TouchableOpacity style={styles.itemArea}>
+                    <TouchableOpacity
+                      style={styles.itemArea}
+                      onPress={() => {
+                        this.setState({modalOpen: true, selectedItem: item});
+                      }}>
                       <Text style={styles.itemTitle}>{item.CMPNM_NM}</Text>
                       <Text style={styles.itemSub}>{item.INDUTYPE_NM}</Text>
                       <Text style={styles.itemSub}>
