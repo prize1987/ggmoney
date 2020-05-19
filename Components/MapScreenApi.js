@@ -8,6 +8,8 @@ import {
   AsyncStorage,
   FlatList,
   Modal,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import {Item, Label, Input, Icon, ListItem} from 'native-base';
 import ApiMain from './ApiMain';
@@ -226,6 +228,16 @@ class SearchScreenApi extends React.Component {
               value={this.state.searchConName}
               clearButtonMode={true}
             />
+            {this.state.searchConName.length > 0 ? (
+              <TouchableWithoutFeedback
+                onPress={() => {
+                  this.setState({searchConName: ''});
+                }}>
+                <Icon name="md-close-circle" style={styles.clearTextButton} />
+              </TouchableWithoutFeedback>
+            ) : (
+              <></>
+            )}
           </Item>
           <Item style={styles.textInput} inlineLabel>
             <Label>
@@ -241,6 +253,16 @@ class SearchScreenApi extends React.Component {
               value={this.state.searchConAddr}
               clearButtonMode={true}
             />
+            {this.state.searchConAddr.length > 0 ? (
+              <TouchableWithoutFeedback
+                onPress={() => {
+                  this.setState({searchConAddr: ''});
+                }}>
+                <Icon name="md-close-circle" style={styles.clearTextButton} />
+              </TouchableWithoutFeedback>
+            ) : (
+              <></>
+            )}
           </Item>
         </View>
         <View style={styles.container}>
@@ -255,7 +277,10 @@ class SearchScreenApi extends React.Component {
                   clusteringEnabled={false}
                   spiralEnabled={true}
                   onRegionChangeComplete={this.onRegionChange}
-                  showsUserLocation={true}>
+                  showsUserLocation={true}
+                  onPress={() => {
+                    Keyboard.dismiss();
+                  }}>
                   {data ? (
                     data.map((item, index) => {
                       if (
@@ -331,7 +356,7 @@ class SearchScreenApi extends React.Component {
               </View>
               {showList ? (
                 <View style={styles.listContainer}>
-                  <Text>{data.length}건</Text>
+                  <Text>{data.length}건 조회됨</Text>
                   <FlatList
                     style={styles.container}
                     data={data}
@@ -349,7 +374,9 @@ class SearchScreenApi extends React.Component {
                                 item.REFINE_WGS84_LOGT
                               ) {
                                 let curRegion = {
-                                  latitude: parseFloat(item.REFINE_WGS84_LAT),
+                                  latitude:
+                                    parseFloat(item.REFINE_WGS84_LAT) +
+                                    region.latitudeDelta / 3,
                                   longitude: parseFloat(item.REFINE_WGS84_LOGT),
                                   latitudeDelta: region.latitudeDelta,
                                   longitudeDelta: region.longitudeDelta,
@@ -395,16 +422,21 @@ class SearchScreenApi extends React.Component {
           ) : mode === 'loading' ? (
             <ActivityIndicator size={50} style={{marginTop: 50}} />
           ) : (
-            <View style={styles.infoContainer}>
-              <Text style={styles.infoText}>검색어를 입력해주세요.</Text>
-              <Text />
-              <Text style={styles.infoSub}>
-                옵션 - 다운로드 방식 기능을 확인해보세요
-              </Text>
-              <Text style={styles.infoSub}>
-                보다 빠르고 편리한 검색이 가능합니다.
-              </Text>
-            </View>
+            <TouchableWithoutFeedback
+              onPress={() => {
+                Keyboard.dismiss();
+              }}>
+              <View style={styles.infoContainer}>
+                <Text style={styles.infoText}>검색어를 입력해주세요.</Text>
+                <Text />
+                <Text style={styles.infoSub}>
+                  옵션 - 다운로드 방식 기능을 확인해보세요
+                </Text>
+                <Text style={styles.infoSub}>
+                  보다 빠르고 편리한 검색이 가능합니다.
+                </Text>
+              </View>
+            </TouchableWithoutFeedback>
           )}
         </View>
       </>
@@ -438,7 +470,7 @@ const styles = StyleSheet.create({
     marginHorizontal: 1,
   },
   icon: {
-    fontSize: 24,
+    fontSize: 18,
     color: 'gray',
     // marginHorizontal:,
   },
@@ -553,6 +585,10 @@ const styles = StyleSheet.create({
       width: 0,
     },
     elevation: 5,
+  },
+  clearTextButton: {
+    fontSize: 20,
+    color: 'gray',
   },
 });
 

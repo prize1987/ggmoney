@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   FlatList,
   Modal,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import {Item, Label, Input, Icon, ListItem} from 'native-base';
 import CustomButton from './CustomButton';
@@ -114,6 +116,7 @@ class SearchScreenDb extends React.Component {
             mapButtonEnabled={true}
           />
         </Modal>
+
         <View style={styles.searchContainer}>
           <Item style={styles.textInput} inlineLabel>
             <Label>
@@ -124,16 +127,25 @@ class SearchScreenDb extends React.Component {
               onChangeText={text => {
                 this.setState({searchCon: text});
               }}
+              value={this.state.searchCon}
               onSubmitEditing={() => this.getInitData()}
               returnKeyType="search"
-              clearButtonMode={true}
             />
+            <TouchableWithoutFeedback
+              onPress={() => {
+                this.setState({searchCon: ''});
+              }}>
+              <Icon name="md-close-circle" style={styles.clearTextButton} />
+            </TouchableWithoutFeedback>
           </Item>
           <CustomButton
             title="검색"
             titleColor="white"
             buttonColor="#2788e5"
-            onPress={() => this.getInitData()}
+            onPress={() => {
+              Keyboard.dismiss();
+              this.getInitData();
+            }}
           />
         </View>
         <View style={styles.listContainer}>
@@ -230,6 +242,10 @@ const styles = StyleSheet.create({
     flex: 1,
     // backgroundColor: 'red',
     alignSelf: 'stretch',
+  },
+  clearTextButton: {
+    fontSize: 20,
+    color: 'gray',
   },
 });
 

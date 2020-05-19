@@ -7,8 +7,10 @@ import {
   TouchableOpacity,
   FlatList,
   Modal,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
-import {Item, Label, Input, Icon, ListItem, CheckBox} from 'native-base';
+import {Item, Label, Input, Icon, ListItem} from 'native-base';
 import ApiMain from './ApiMain';
 import Toast from 'react-native-root-toast';
 
@@ -154,6 +156,7 @@ class SearchScreenApi extends React.Component {
             mapButtonEnabled={true}
           />
         </Modal>
+
         <View style={styles.searchContainer}>
           <Item style={styles.textInput} inlineLabel>
             <Label>
@@ -164,10 +167,21 @@ class SearchScreenApi extends React.Component {
               onChangeText={text => {
                 this.setState({searchConName: text});
               }}
+              value={this.state.searchConName}
               onSubmitEditing={() => this.getInitData()}
               returnKeyType="search"
               clearButtonMode={true}
             />
+            {this.state.searchConName.length > 0 ? (
+              <TouchableWithoutFeedback
+                onPress={() => {
+                  this.setState({searchConName: ''});
+                }}>
+                <Icon name="md-close-circle" style={styles.clearTextButton} />
+              </TouchableWithoutFeedback>
+            ) : (
+              <></>
+            )}
           </Item>
           <Item style={styles.textInput} inlineLabel>
             <Label>
@@ -178,10 +192,21 @@ class SearchScreenApi extends React.Component {
               onChangeText={text => {
                 this.setState({searchConAddr: text});
               }}
+              value={this.state.searchConAddr}
               onSubmitEditing={() => this.getInitData()}
               returnKeyType="search"
               clearButtonMode={true}
             />
+            {this.state.searchConAddr.length > 0 ? (
+              <TouchableWithoutFeedback
+                onPress={() => {
+                  this.setState({searchConAddr: ''});
+                }}>
+                <Icon name="md-close-circle" style={styles.clearTextButton} />
+              </TouchableWithoutFeedback>
+            ) : (
+              <></>
+            )}
           </Item>
         </View>
         <View style={styles.listContainer}>
@@ -217,16 +242,21 @@ class SearchScreenApi extends React.Component {
           ) : mode === 'loading' ? (
             <ActivityIndicator size={50} style={{marginTop: 50}} />
           ) : (
-            <View>
-              <Text style={styles.infoText}>검색어를 입력해주세요.</Text>
-              <Text />
-              <Text style={styles.infoSub}>
-                옵션 - 다운로드 방식 기능을 확인해보세요
-              </Text>
-              <Text style={styles.infoSub}>
-                보다 빠르고 편리한 검색이 가능합니다.
-              </Text>
-            </View>
+            <TouchableWithoutFeedback
+              onPress={() => {
+                Keyboard.dismiss();
+              }}>
+              <View>
+                <Text style={styles.infoText}>검색어를 입력해주세요.</Text>
+                <Text />
+                <Text style={styles.infoSub}>
+                  옵션 - 다운로드 방식 기능을 확인해보세요
+                </Text>
+                <Text style={styles.infoSub}>
+                  보다 빠르고 편리한 검색이 가능합니다.
+                </Text>
+              </View>
+            </TouchableWithoutFeedback>
           )}
         </View>
       </>
@@ -267,7 +297,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   icon: {
-    fontSize: 24,
+    fontSize: 18,
     color: 'gray',
     // marginHorizontal:,
   },
@@ -299,6 +329,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: 'grey',
     alignSelf: 'center',
+  },
+  clearTextButton: {
+    fontSize: 20,
+    color: 'gray',
   },
 });
 

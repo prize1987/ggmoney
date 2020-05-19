@@ -9,6 +9,7 @@ import {
   FlatList,
   Keyboard,
   Modal,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import {Item, Label, Input, Icon, ListItem} from 'native-base';
 import CustomButton from './CustomButton';
@@ -242,20 +243,28 @@ class MapScreenDb extends React.Component {
             </Label>
             <Input
               placeholder="키워드 검색 (띄어쓰기로 구분)"
-              value={this.state.searchCon}
               onChangeText={text => {
                 this.setState({searchCon: text});
               }}
+              value={this.state.searchCon}
               onSubmitEditing={() => this.searchData()}
               returnKeyType="search"
-              clearButtonMode={true}
             />
+            <TouchableWithoutFeedback
+              onPress={() => {
+                this.setState({searchCon: ''});
+              }}>
+              <Icon name="md-close-circle" style={styles.clearTextButton} />
+            </TouchableWithoutFeedback>
           </Item>
           <CustomButton
             title="검색"
             titleColor="white"
             buttonColor="#2788e5"
-            onPress={() => this.searchData()}
+            onPress={() => {
+              Keyboard.dismiss();
+              this.searchData();
+            }}
           />
         </View>
         <View style={styles.container}>
@@ -350,7 +359,7 @@ class MapScreenDb extends React.Component {
               </View>
               {showList ? (
                 <View style={styles.listContainer}>
-                  <Text>{data.length}건</Text>
+                  <Text>{data.length}건 조회됨</Text>
                   <FlatList
                     style={styles.container}
                     data={data}
@@ -368,7 +377,9 @@ class MapScreenDb extends React.Component {
                                 item.REFINE_WGS84_LOGT
                               ) {
                                 let curRegion = {
-                                  latitude: parseFloat(item.REFINE_WGS84_LAT),
+                                  latitude:
+                                    parseFloat(item.REFINE_WGS84_LAT) +
+                                    region.latitudeDelta / 3,
                                   longitude: parseFloat(item.REFINE_WGS84_LOGT),
                                   latitudeDelta: region.latitudeDelta,
                                   longitudeDelta: region.longitudeDelta,
@@ -557,6 +568,10 @@ const styles = StyleSheet.create({
       width: 0,
     },
     elevation: 5,
+  },
+  clearTextButton: {
+    fontSize: 20,
+    color: 'gray',
   },
 });
 
