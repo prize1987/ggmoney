@@ -367,7 +367,7 @@ const styles = StyleSheet.create({
   },
   itemText: {
     fontSize: 19,
-    width: 100,
+    width: 80,
   },
   updateCheckContainer: {
     flex: 1,

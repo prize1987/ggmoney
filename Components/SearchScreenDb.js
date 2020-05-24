@@ -9,16 +9,42 @@ import {
   Modal,
   TouchableWithoutFeedback,
   Keyboard,
+  AsyncStorage,
 } from 'react-native';
-import {Item, Label, Input, Icon, ListItem} from 'native-base';
+import {Item, Label, Input, Icon, ListItem, Picker} from 'native-base';
 import CustomButton from './CustomButton';
 import GGDB from './Database';
 import Toast from 'react-native-root-toast';
 import StoreInfoModal from './StoreInfoModal';
 
+const indutypeList = [
+  '전체',
+  '숙박',
+  '여행',
+  '레저',
+  '문화/취미',
+  '의류/잡화/생활가전',
+  '주유소',
+  '유통/편의점',
+  '서적/문구',
+  '학원',
+  '사무통신',
+  '자동차판매/정비',
+  '서비스',
+  '보험',
+  '병원',
+  '약국',
+  '기타 의료기관',
+  '미용/안경/보건위생',
+  '일반/휴게음식',
+  '제과/음료식품',
+  '기타',
+];
+
 class SearchScreenDb extends React.Component {
   static defaultProps = {numToRender: 20};
   state = {
+    indutypeCon: '',
     searchCon: '',
     db: null,
     data: [],
@@ -36,7 +62,9 @@ class SearchScreenDb extends React.Component {
   }
 
   componentDidMount() {
-    this.getInitData();
+    this.loadLastStatus();
+
+    // this.getInitData();
     // console.log(this.props.numToRender);
   }
 
@@ -50,15 +78,43 @@ class SearchScreenDb extends React.Component {
     });
   }
 
+  loadLastStatus = async () => {
+    AsyncStorage.getItem('lastIndutypeCon').then(indutypeCon => {
+      AsyncStorage.getItem('lastSearchCon').then(searchCon => {
+        if (indutypeCon === null) {
+          indutypeCon = '';
+        }
+        if (searchCon === null) {
+          searchCon = '';
+        }
+
+        this.setState({
+          indutypeCon: indutypeCon,
+          searchCon: searchCon,
+        });
+
+        this.getInitData();
+      });
+    });
+  };
+
   async getInitData() {
     const {numToRender} = this.props;
-    const {searchCon, db} = this.state;
-    console.log(searchCon);
+    const {indutypeCon, searchCon, db} = this.state;
+    // console.log(indutypeCon);
+
+    AsyncStorage.setItem('lastIndutypeCon', indutypeCon.toString());
+    AsyncStorage.setItem('lastSearchCon', searchCon.toString());
 
     this.setState({isLoaded: false});
 
-    let totalCnt = await db.selectGgmoneyCnt(searchCon);
-    let recvData = await db.selectGgmoney(searchCon, 0, numToRender);
+    let totalCnt = await db.selectGgmoneyCnt(indutypeCon, searchCon);
+    let recvData = await db.selectGgmoney(
+      indutypeCon,
+      searchCon,
+      0,
+      numToRender,
+    );
 
     this.showToast(
       totalCnt + '건 조회',
@@ -75,9 +131,14 @@ class SearchScreenDb extends React.Component {
   }
   async getMoreData() {
     const {numToRender} = this.props;
-    const {searchCon, data, fetchCnt, db} = this.state;
+    const {indutypeCon, searchCon, data, fetchCnt, db} = this.state;
 
-    let recvData = await db.selectGgmoney(searchCon, fetchCnt, numToRender);
+    let recvData = await db.selectGgmoney(
+      indutypeCon,
+      searchCon,
+      fetchCnt,
+      numToRender,
+    );
 
     this.setState({
       data: [...data, ...recvData],
@@ -118,6 +179,23 @@ class SearchScreenDb extends React.Component {
         </Modal>
 
         <View style={styles.searchContainer}>
+          <Item picker>
+            <Picker
+              mode="dropdown"
+              iosIcon={<Icon name="arrow-down" />}
+              style={{width: 100}}
+              placeholder="업종"
+              placeholderStyle={{color: 'grey'}}
+              // placeholderIconColor="grey"
+              selectedValue={this.state.indutypeCon}
+              onValueChange={value => {
+                this.setState({indutypeCon: value});
+              }}>
+              {indutypeList.map(indutype => {
+                return <Picker.item label={indutype} value={indutype} />;
+              })}
+            </Picker>
+          </Item>
           <Item style={styles.textInput} inlineLabel>
             <Label>
               <Icon style={styles.icon} name="search" />

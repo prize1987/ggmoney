@@ -219,7 +219,7 @@ class SearchScreenApi extends React.Component {
               <Icon style={styles.icon} name="search" />
             </Label>
             <Input
-              placeholder="상호명"
+              placeholder="이름으로 검색"
               onChangeText={text => {
                 this.setState({searchConName: text});
               }}
@@ -244,7 +244,7 @@ class SearchScreenApi extends React.Component {
               <Icon style={styles.icon} name="search" />
             </Label>
             <Input
-              placeholder="주소(지번 or 도로명)"
+              placeholder="주소로 검색"
               onChangeText={text => {
                 this.setState({searchConAddr: text});
               }}

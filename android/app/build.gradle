@@ -133,8 +133,8 @@ android {
         applicationId "com.yoongi.ggmoney"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 17
-        versionName "0.7.1"
+        versionCode 18
+        versionName "0.7.5"
         multiDexEnabled true // 추가
     }
     signingConfigs {

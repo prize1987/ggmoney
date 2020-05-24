@@ -11,7 +11,7 @@ import {
   Modal,
   TouchableWithoutFeedback,
 } from 'react-native';
-import {Item, Label, Input, Icon, ListItem} from 'native-base';
+import {Item, Label, Input, Icon, ListItem, Picker} from 'native-base';
 import CustomButton from './CustomButton';
 import GGDB from './Database';
 import Toast from 'react-native-root-toast';
@@ -20,8 +20,35 @@ import MapView, {PROVIDER_GOOGLE, Marker, Callout} from 'react-native-maps';
 
 import StoreInfoModal from './StoreInfoModal';
 
+const indutypeList = [
+  '전체',
+  '숙박',
+  '여행',
+  '레저',
+  '문화/취미',
+  '의류/잡화/생활가전',
+  '주유소',
+  '유통/편의점',
+  '서적/문구',
+  '학원',
+  '사무통신',
+  '자동차판매/정비',
+  '서비스',
+  '보험',
+  '병원',
+  '약국',
+  '기타 의료기관',
+  '미용/안경/보건위생',
+  '일반/휴게음식',
+  '제과/음료식품',
+  '기타',
+];
+
 class MapScreenDb extends React.Component {
+  isFirstRegionChange = true;
+
   state = {
+    indutypeCon: '',
     searchCon: '',
     db: null,
     data: [],
@@ -48,24 +75,41 @@ class MapScreenDb extends React.Component {
     AsyncStorage.getItem('mapSearchLimit').then(res => {
       this.numToRender = res ? res : 100;
     });
+    this.loadLastStatus();
   }
 
-  loadLastRegion = async () => {
+  loadLastStatus = async () => {
     AsyncStorage.getItem('lastLatitude').then(latitude => {
       AsyncStorage.getItem('lastLongitude').then(longitude => {
         AsyncStorage.getItem('lastLatitudeDelta').then(latitudeDelta => {
           AsyncStorage.getItem('lastLongitudeDelta').then(longitudeDelta => {
-            if (latitude && longitude && latitudeDelta && longitudeDelta) {
-              let lastRegion = {
-                latitude: parseFloat(latitude),
-                longitude: parseFloat(longitude),
-                latitudeDelta: parseFloat(latitudeDelta),
-                longitudeDelta: parseFloat(longitudeDelta),
-              };
-              console.log(lastRegion);
+            AsyncStorage.getItem('lastIndutypeCon').then(indutypeCon => {
+              AsyncStorage.getItem('lastSearchCon').then(searchCon => {
+                if (latitude && longitude && latitudeDelta && longitudeDelta) {
+                  let lastRegion = {
+                    latitude: parseFloat(latitude),
+                    longitude: parseFloat(longitude),
+                    latitudeDelta: parseFloat(latitudeDelta),
+                    longitudeDelta: parseFloat(longitudeDelta),
+                  };
+                  // console.log('yoyo : ');
+                  // console.log(lastRegion);
 
-              this.setState({region: lastRegion});
-            }
+                  if (indutypeCon === null) {
+                    indutypeCon = '';
+                  }
+                  if (searchCon === null) {
+                    searchCon = '';
+                  }
+
+                  this.setState({
+                    region: lastRegion,
+                    indutypeCon: indutypeCon,
+                    searchCon: searchCon,
+                  });
+                }
+              });
+            });
           });
         });
       });
@@ -86,7 +130,6 @@ class MapScreenDb extends React.Component {
   componentDidMount() {
     // this.searchData();
     // console.log(this.props.numToRender);
-    this.loadLastRegion();
 
     this.loadAddrRequest();
   }
@@ -102,15 +145,23 @@ class MapScreenDb extends React.Component {
   }
 
   async searchData(area) {
-    const {searchCon, db} = this.state;
+    const {indutypeCon, searchCon, db} = this.state;
     // console.log(searchCon);
+
+    AsyncStorage.setItem('lastIndutypeCon', indutypeCon.toString());
+    AsyncStorage.setItem('lastSearchCon', searchCon.toString());
 
     this.setState({isLoaded: false});
 
     let recvData;
 
     if (area === undefined) {
-      recvData = await db.selectGgmoney(searchCon, 0, this.numToRender);
+      recvData = await db.selectGgmoney(
+        indutypeCon,
+        searchCon,
+        0,
+        this.numToRender,
+      );
     } else {
       let lat_lcl = area.latitude - area.latitudeDelta / 2;
       let lat_ucl = area.latitude + area.latitudeDelta / 2;
@@ -118,6 +169,7 @@ class MapScreenDb extends React.Component {
       let lon_ucl = area.longitude + area.longitudeDelta / 2;
 
       recvData = await db.selectGgmoneyByArea(
+        indutypeCon,
         searchCon,
         lat_lcl,
         lat_ucl,
@@ -182,17 +234,27 @@ class MapScreenDb extends React.Component {
   }
 
   onRegionChange = reg => {
-    const {region} = this.state;
-    // console.log(reg);
-    if (
-      region.latitude.toFixed(6) !== reg.latitude.toFixed(6) ||
-      region.longitude.toFixed(6) !== reg.longitude.toFixed(6)
-    ) {
-      AsyncStorage.setItem('lastLatitude', reg.latitude.toString());
-      AsyncStorage.setItem('lastLongitude', reg.longitude.toString());
-      AsyncStorage.setItem('lastLatitudeDelta', reg.latitudeDelta.toString());
-      AsyncStorage.setItem('lastLongitudeDelta', reg.longitudeDelta.toString());
-      this.setState({region: reg});
+    if (this.isFirstRegionChange) {
+      this.isFirstRegionChange = false;
+    } else {
+      const {region} = this.state;
+      // console.log('prev : ' + region.latitude);
+      // console.log('curr : ' + reg.latitude);
+      // console.log(reg);
+      if (
+        region.latitude.toFixed(6) !== reg.latitude.toFixed(6) ||
+        region.longitude.toFixed(6) !== reg.longitude.toFixed(6)
+      ) {
+        AsyncStorage.setItem('lastLatitude', reg.latitude.toString());
+        AsyncStorage.setItem('lastLongitude', reg.longitude.toString());
+        AsyncStorage.setItem('lastLatitudeDelta', reg.latitudeDelta.toString());
+        AsyncStorage.setItem(
+          'lastLongitudeDelta',
+          reg.longitudeDelta.toString(),
+        );
+
+        this.setState({region: reg});
+      }
     }
   };
 
@@ -237,6 +299,23 @@ class MapScreenDb extends React.Component {
         </Modal>
 
         <View style={styles.searchContainer}>
+          <Item picker>
+            <Picker
+              mode="dropdown"
+              iosIcon={<Icon name="arrow-down" />}
+              style={{width: 100}}
+              placeholder="업종"
+              placeholderStyle={{color: 'grey'}}
+              // placeholderIconColor="grey"
+              selectedValue={this.state.indutypeCon}
+              onValueChange={value => {
+                this.setState({indutypeCon: value});
+              }}>
+              {indutypeList.map(indutype => {
+                return <Picker.item label={indutype} value={indutype} />;
+              })}
+            </Picker>
+          </Item>
           <Item style={styles.textInput} inlineLabel>
             <Label>
               <Icon style={styles.icon} name="search" />
