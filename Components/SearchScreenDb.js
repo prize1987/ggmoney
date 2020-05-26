@@ -79,22 +79,14 @@ class SearchScreenDb extends React.Component {
   }
 
   loadLastStatus = async () => {
-    AsyncStorage.getItem('lastIndutypeCon').then(indutypeCon => {
-      AsyncStorage.getItem('lastSearchCon').then(searchCon => {
-        if (indutypeCon === null) {
-          indutypeCon = '';
-        }
-        if (searchCon === null) {
-          searchCon = '';
-        }
+    AsyncStorage.getItem('lastSearchCon').then(searchCon => {
+      if (searchCon === null) {
+        searchCon = '';
+      }
 
-        this.setState({
-          indutypeCon: indutypeCon,
-          searchCon: searchCon,
-        });
+      this.setState({searchCon: searchCon});
 
-        this.getInitData();
-      });
+      this.getInitData();
     });
   };
 
@@ -103,7 +95,6 @@ class SearchScreenDb extends React.Component {
     const {indutypeCon, searchCon, db} = this.state;
     // console.log(indutypeCon);
 
-    AsyncStorage.setItem('lastIndutypeCon', indutypeCon.toString());
     AsyncStorage.setItem('lastSearchCon', searchCon.toString());
 
     this.setState({isLoaded: false});
@@ -179,7 +170,8 @@ class SearchScreenDb extends React.Component {
         </Modal>
 
         <View style={styles.searchContainer}>
-          <Item picker>
+          {/* <Item picker> */}
+          <View>
             <Picker
               mode="dropdown"
               iosIcon={<Icon name="arrow-down" />}
@@ -195,7 +187,8 @@ class SearchScreenDb extends React.Component {
                 return <Picker.item label={indutype} value={indutype} />;
               })}
             </Picker>
-          </Item>
+          </View>
+          {/* </Item> */}
           <Item style={styles.textInput} inlineLabel>
             <Label>
               <Icon style={styles.icon} name="search" />

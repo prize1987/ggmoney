@@ -83,32 +83,26 @@ class MapScreenDb extends React.Component {
       AsyncStorage.getItem('lastLongitude').then(longitude => {
         AsyncStorage.getItem('lastLatitudeDelta').then(latitudeDelta => {
           AsyncStorage.getItem('lastLongitudeDelta').then(longitudeDelta => {
-            AsyncStorage.getItem('lastIndutypeCon').then(indutypeCon => {
-              AsyncStorage.getItem('lastSearchCon').then(searchCon => {
-                if (latitude && longitude && latitudeDelta && longitudeDelta) {
-                  let lastRegion = {
-                    latitude: parseFloat(latitude),
-                    longitude: parseFloat(longitude),
-                    latitudeDelta: parseFloat(latitudeDelta),
-                    longitudeDelta: parseFloat(longitudeDelta),
-                  };
-                  // console.log('yoyo : ');
-                  // console.log(lastRegion);
+            AsyncStorage.getItem('lastSearchCon').then(searchCon => {
+              if (latitude && longitude && latitudeDelta && longitudeDelta) {
+                let lastRegion = {
+                  latitude: parseFloat(latitude),
+                  longitude: parseFloat(longitude),
+                  latitudeDelta: parseFloat(latitudeDelta),
+                  longitudeDelta: parseFloat(longitudeDelta),
+                };
+                // console.log('yoyo : ');
+                // console.log(lastRegion);
 
-                  if (indutypeCon === null) {
-                    indutypeCon = '';
-                  }
-                  if (searchCon === null) {
-                    searchCon = '';
-                  }
-
-                  this.setState({
-                    region: lastRegion,
-                    indutypeCon: indutypeCon,
-                    searchCon: searchCon,
-                  });
+                if (searchCon === null) {
+                  searchCon = '';
                 }
-              });
+
+                this.setState({
+                  region: lastRegion,
+                  searchCon: searchCon,
+                });
+              }
             });
           });
         });
@@ -148,7 +142,6 @@ class MapScreenDb extends React.Component {
     const {indutypeCon, searchCon, db} = this.state;
     // console.log(searchCon);
 
-    AsyncStorage.setItem('lastIndutypeCon', indutypeCon.toString());
     AsyncStorage.setItem('lastSearchCon', searchCon.toString());
 
     this.setState({isLoaded: false});

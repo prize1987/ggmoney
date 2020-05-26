@@ -30,7 +30,7 @@ class AdScreen extends React.Component {
       })
       .then(() => {
         // Request config successfully set!
-        // console.log('request success');
+        console.log('request success');
         this.setState({isLoaded: true});
       })
       .catch(error => {
@@ -55,10 +55,12 @@ class AdScreen extends React.Component {
         // }}
         onAdLoaded={() => {
           // this.setState({bannerVisible: false});
-          // console.log('Advert loaded');
+          console.log('Advert loaded');
+          this.setState({isLoaded: true});
         }}
-        onAdFailedToLoad={function(error) {
-          console.error('Advert failed to load: ', error);
+        onAdFailedToLoad={error => {
+          console.log('Advert failed to load: ', error);
+          this.setState({isLoaded: false});
         }}
       />
     ) : (

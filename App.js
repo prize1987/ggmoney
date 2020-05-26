@@ -46,7 +46,7 @@ class App extends React.Component {
 
     return (
       <View style={{flex: 1}}>
-        <FirstScreen />
+        {/* <FirstScreen /> */}
 
         <StatusBar barStyle="dark-content" />
         <SafeAreaView style={styles.bodyContainer}>
