@@ -786,7 +786,7 @@
 				);
 				INFOPLIST_FILE = ggmoney/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 0.7.6;
+				MARKETING_VERSION = 0.7.7;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
@@ -813,7 +813,7 @@
 				DEVELOPMENT_TEAM = 5NTF8V3WJM;
 				INFOPLIST_FILE = ggmoney/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
-				MARKETING_VERSION = 0.7.6;
+				MARKETING_VERSION = 0.7.7;
 				OTHER_LDFLAGS = (
 					"$(inherited)",
 					"-ObjC",
