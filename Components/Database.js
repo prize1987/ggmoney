@@ -95,7 +95,7 @@ class GGDB {
       case '미용/안경/보건위생':
         con += "보건위생%') ";
         break;
-      case '일반/휴게음식':
+      case '음식점':
         con += "음식%') ";
         break;
       case '제과/음료식품':

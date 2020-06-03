@@ -22,25 +22,25 @@ import StoreInfoModal from './StoreInfoModal';
 
 const indutypeList = [
   '전체',
+  '음식점',
+  '유통/편의점',
+  '제과/음료식품',
   '숙박',
+  '미용/안경/보건위생',
+  '문화/취미',
   '여행',
   '레저',
-  '문화/취미',
   '의류/잡화/생활가전',
   '주유소',
-  '유통/편의점',
+  '자동차판매/정비',
   '서적/문구',
   '학원',
   '사무통신',
-  '자동차판매/정비',
   '서비스',
-  '보험',
   '병원',
   '약국',
   '기타 의료기관',
-  '미용/안경/보건위생',
-  '일반/휴게음식',
-  '제과/음료식품',
+  '보험',
   '기타',
 ];
 
@@ -292,7 +292,7 @@ class MapScreenDb extends React.Component {
         </Modal>
 
         <View style={styles.searchContainer}>
-          <Item picker>
+          <View>
             <Picker
               mode="dropdown"
               iosIcon={<Icon name="arrow-down" />}
@@ -308,7 +308,7 @@ class MapScreenDb extends React.Component {
                 return <Picker.item label={indutype} value={indutype} />;
               })}
             </Picker>
-          </Item>
+          </View>
           <Item style={styles.textInput} inlineLabel>
             <Label>
               <Icon style={styles.icon} name="search" />
