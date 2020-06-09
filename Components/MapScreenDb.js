@@ -223,6 +223,7 @@ class MapScreenDb extends React.Component {
       fetchCnt: recvData.length,
       isLoaded: true,
       region: region,
+      showList: true,
     });
   }
 
@@ -292,7 +293,7 @@ class MapScreenDb extends React.Component {
         </Modal>
 
         <View style={styles.searchContainer}>
-          <View>
+          <View style={{justifyContent: 'center'}}>
             <Picker
               mode="dropdown"
               iosIcon={<Icon name="arrow-down" />}
@@ -356,7 +357,7 @@ class MapScreenDb extends React.Component {
                     //   this.markers[e._targetInst.return.key].showCallout();
                   }}
                   showsUserLocation={true}>
-                  {data ? (
+                  {data &&
                     data.map((item, index) => {
                       if (
                         item.REFINE_WGS84_LAT !== null &&
@@ -364,7 +365,6 @@ class MapScreenDb extends React.Component {
                       ) {
                         return (
                           <Marker
-                            key={index}
                             coordinate={{
                               latitude: parseFloat(item.REFINE_WGS84_LAT),
                               longitude: parseFloat(item.REFINE_WGS84_LOGT),
@@ -372,7 +372,13 @@ class MapScreenDb extends React.Component {
                             ref={ref => {
                               this.markers[index] = ref;
                             }}>
-                            <Callout>
+                            <Callout
+                              onPress={() => {
+                                this.setState({
+                                  modalOpen: true,
+                                  selectedItem: item,
+                                });
+                              }}>
                               <Text style={styles.mapInfoText}>
                                 {item.CMPNM_NM}
                               </Text>
@@ -392,29 +398,22 @@ class MapScreenDb extends React.Component {
                           </Marker>
                         );
                       }
-                    })
-                  ) : (
-                    <></>
-                  )}
+                    })}
                 </MapView>
                 <TouchableOpacity
                   style={styles.myOverlayContainer}
                   onPress={this.getCurrentPosition}>
                   <Icon name="md-locate" />
                 </TouchableOpacity>
-                {!showList ? (
-                  <TouchableOpacity
-                    style={styles.curOverlayContainer}
-                    onPress={() => {
-                      this.searchData(this.state.region);
-                    }}>
-                    <Icon style={styles.curOverlayIcon} name="md-refresh" />
-                    <Text style={styles.curOverlayText}>현 지도에서 검색</Text>
-                  </TouchableOpacity>
-                ) : (
-                  <></>
-                )}
-                {data.length > 0 ? (
+                <TouchableOpacity
+                  style={styles.curOverlayContainer}
+                  onPress={() => {
+                    this.searchData(this.state.region);
+                  }}>
+                  <Icon style={styles.curOverlayIcon} name="md-refresh" />
+                  <Text style={styles.curOverlayText}>현 지도에서 검색</Text>
+                </TouchableOpacity>
+                {data.length > 0 && (
                   <TouchableOpacity
                     style={styles.listOverlayContainer}
                     onPress={() => {
@@ -425,11 +424,9 @@ class MapScreenDb extends React.Component {
                       {showList ? '목록 숨기기' : '목록 표시'}
                     </Text>
                   </TouchableOpacity>
-                ) : (
-                  <></>
                 )}
               </View>
-              {showList ? (
+              {showList && (
                 <View style={styles.listContainer}>
                   <Text>{data.length}건 조회됨</Text>
                   <FlatList
@@ -490,8 +487,6 @@ class MapScreenDb extends React.Component {
                     }}
                   />
                 </View>
-              ) : (
-                <></>
               )}
             </View>
           ) : (

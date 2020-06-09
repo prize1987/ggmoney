@@ -171,7 +171,7 @@ class SearchScreenDb extends React.Component {
 
         <View style={styles.searchContainer}>
           {/* <Item picker> */}
-          <View>
+          <View style={{justifyContent: 'center'}}>
             <Picker
               mode="dropdown"
               iosIcon={<Icon name="arrow-down" />}
