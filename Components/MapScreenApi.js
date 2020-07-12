@@ -114,7 +114,7 @@ class SearchScreenApi extends React.Component {
         ? this.numToRender + '건 이상'
         : totalCnt + '건 조회',
       Toast.durations.SHORT,
-      Toast.positions.BOTTOM,
+      Toast.positions.BOTTOM - 160,
     );
 
     let {region} = this.state;

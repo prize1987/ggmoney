@@ -85,7 +85,7 @@ class SearchScreenApi extends React.Component {
     this.showToast(
       totalCnt + '건 조회',
       Toast.durations.SHORT,
-      Toast.positions.BOTTOM,
+      Toast.positions.BOTTOM - 160,
     );
 
     this.setState({

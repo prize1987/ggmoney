@@ -53,7 +53,7 @@ class MapScreenDb extends React.Component {
     db: null,
     data: [],
     fetchCnt: 0,
-    isLoaded: true,
+    isLoaded: false,
     region: {
       latitude: 37.275077,
       longitude: 127.009477,
@@ -71,11 +71,16 @@ class MapScreenDb extends React.Component {
     super(props);
 
     this.state.db = new GGDB();
+  }
 
+  componentDidMount() {
+    // this.searchData();
+    // console.log(this.props.numToRender);
     AsyncStorage.getItem('mapSearchLimit').then(res => {
       this.numToRender = res ? res : 100;
     });
-    this.loadLastStatus();
+
+    this.loadAddrRequest();
   }
 
   loadLastStatus = async () => {
@@ -83,50 +88,65 @@ class MapScreenDb extends React.Component {
       AsyncStorage.getItem('lastLongitude').then(longitude => {
         AsyncStorage.getItem('lastLatitudeDelta').then(latitudeDelta => {
           AsyncStorage.getItem('lastLongitudeDelta').then(longitudeDelta => {
-            AsyncStorage.getItem('lastSearchCon').then(searchCon => {
-              if (latitude && longitude && latitudeDelta && longitudeDelta) {
-                let lastRegion = {
-                  latitude: parseFloat(latitude),
-                  longitude: parseFloat(longitude),
-                  latitudeDelta: parseFloat(latitudeDelta),
-                  longitudeDelta: parseFloat(longitudeDelta),
-                };
-                // console.log('yoyo : ');
-                // console.log(lastRegion);
+            if (latitude && longitude && latitudeDelta && longitudeDelta) {
+              let lastRegion = {
+                latitude: parseFloat(latitude),
+                longitude: parseFloat(longitude),
+                latitudeDelta: parseFloat(latitudeDelta),
+                longitudeDelta: parseFloat(longitudeDelta),
+              };
 
-                if (searchCon === null) {
-                  searchCon = '';
-                }
-
-                this.setState({
-                  region: lastRegion,
-                  searchCon: searchCon,
-                });
-              }
-            });
+              this.setState({region: lastRegion});
+            }
           });
         });
       });
     });
+
+    AsyncStorage.getItem('isSave').then(isSave => {
+      if (isSave === 'true') {
+        AsyncStorage.getItem('lastSearchCon').then(searchCon => {
+          if (searchCon === null) {
+            searchCon = '';
+          }
+
+          this.setState({searchCon: searchCon});
+        });
+      }
+    });
+
+    // AsyncStorage.getItem('lastIndutypeCon').then(induTypeCon => {
+    //   if (induTypeCon === null) {
+    //     induTypeCon = '';
+    //   }
+
+    //   this.setState({indutypeCon: induTypeCon});
+    // });
   };
 
   loadAddrRequest = async () => {
     AsyncStorage.getItem('addrRequest').then(addr => {
       if (addr) {
         this.setState({searchCon: addr}, () => {
-          this.searchData();
+          // this.isFirstRegionChange = false;
+          this.searchData(undefined, false);
           AsyncStorage.removeItem('addrRequest');
         });
+
+        // 검색어 조정 (주소 -> 검색키워드)
+        AsyncStorage.getItem('lastSearchCon').then(searchCon => {
+          if (searchCon === null) {
+            searchCon = '';
+          }
+
+          this.setState({searchCon: searchCon});
+        });
+      } else {
+        this.loadLastStatus();
+        this.setState({isLoaded: true});
       }
     });
   };
-
-  componentDidMount() {
-    // this.searchData();
-    // console.log(this.props.numToRender);
-
-    this.loadAddrRequest();
-  }
 
   showToast(msg, dur = Toast.durations.LONG, pos = Toast.positions.BOTTOM) {
     Toast.show(msg, {
@@ -138,11 +158,13 @@ class MapScreenDb extends React.Component {
     });
   }
 
-  async searchData(area) {
+  async searchData(area, searchConSave = true) {
     const {indutypeCon, searchCon, db} = this.state;
     // console.log(searchCon);
 
-    AsyncStorage.setItem('lastSearchCon', searchCon.toString());
+    if (searchConSave) {
+      AsyncStorage.setItem('lastSearchCon', searchCon);
+    }
 
     this.setState({isLoaded: false});
 
@@ -177,7 +199,7 @@ class MapScreenDb extends React.Component {
         ? this.numToRender + '건 이상'
         : recvData.length + '건 조회',
       Toast.durations.SHORT,
-      Toast.positions.BOTTOM,
+      Toast.positions.BOTTOM - 160,
     );
 
     let {region} = this.state;
@@ -188,7 +210,7 @@ class MapScreenDb extends React.Component {
       let minlon = 9999;
       let maxlon = -9999;
 
-      recvData.map(item => {
+      await recvData.map(item => {
         if (
           item.REFINE_WGS84_LAT !== null &&
           item.REFINE_WGS84_LOGT !== null &&
@@ -221,8 +243,8 @@ class MapScreenDb extends React.Component {
     this.setState({
       data: recvData,
       fetchCnt: recvData.length,
-      isLoaded: true,
       region: region,
+      isLoaded: true,
       showList: true,
     });
   }
@@ -250,6 +272,10 @@ class MapScreenDb extends React.Component {
         this.setState({region: reg});
       }
     }
+  };
+
+  onIndutypeChange = value => {
+    this.setState({indutypeCon: value}, this.searchData);
   };
 
   getCurrentPosition = () => {
@@ -302,9 +328,10 @@ class MapScreenDb extends React.Component {
               placeholderStyle={{color: 'grey'}}
               // placeholderIconColor="grey"
               selectedValue={this.state.indutypeCon}
-              onValueChange={value => {
-                this.setState({indutypeCon: value});
-              }}>
+              // onValueChange={value => {
+              //   this.setState({indutypeCon: value});
+              // }}
+              onValueChange={this.onIndutypeChange}>
               {indutypeList.map(indutype => {
                 return <Picker.item label={indutype} value={indutype} />;
               })}

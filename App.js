@@ -22,6 +22,7 @@ class App extends React.Component {
   state = {
     activePage: 'search',
     isDownload: false,
+    isSave: false,
   };
 
   componentDidMount = () => {
@@ -30,9 +31,12 @@ class App extends React.Component {
 
   initStatus = async () => {
     let isDownload = await AsyncStorage.getItem('isDownload');
-    this.setState({
-      isDownload: isDownload === 'true',
-    });
+    this.setState({isDownload: isDownload === 'true'});
+
+    let activePage = await AsyncStorage.getItem('activePage');
+    if (activePage !== null) {
+      this.setState({activePage: activePage});
+    }
   };
 
   callMapSearch = async addr => {
@@ -86,6 +90,7 @@ class App extends React.Component {
                       activePage: 'search',
                       isDownload: dlcheck === 'true',
                     });
+                    AsyncStorage.setItem('activePage', 'search');
                   }}>
                   <Icon
                     style={
@@ -112,6 +117,7 @@ class App extends React.Component {
                       activePage: 'map',
                       isDownload: dlcheck === 'true',
                     });
+                    AsyncStorage.setItem('activePage', 'map');
                   }}>
                   <Icon
                     style={

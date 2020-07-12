@@ -79,14 +79,19 @@ class SearchScreenDb extends React.Component {
   }
 
   loadLastStatus = async () => {
-    AsyncStorage.getItem('lastSearchCon').then(searchCon => {
-      if (searchCon === null) {
-        searchCon = '';
+    AsyncStorage.getItem('isSave').then(isSave => {
+      if (isSave === 'true') {
+        AsyncStorage.getItem('lastSearchCon').then(searchCon => {
+          if (searchCon === null) {
+            searchCon = '';
+          }
+
+          this.setState({searchCon: searchCon});
+          this.getInitData();
+        });
+      } else {
+        this.getInitData();
       }
-
-      this.setState({searchCon: searchCon});
-
-      this.getInitData();
     });
   };
 
@@ -95,7 +100,18 @@ class SearchScreenDb extends React.Component {
     const {indutypeCon, searchCon, db} = this.state;
     // console.log(indutypeCon);
 
-    AsyncStorage.setItem('lastSearchCon', searchCon.toString());
+    if (searchCon === '수진아사랑해행복하자') {
+      AsyncStorage.setItem('adOff', 'true');
+      this.showToast('광고 끔', Toast.durations.SHORT, Toast.positions.CENTER);
+      return;
+    }
+    if (searchCon === '몽이순산기원') {
+      AsyncStorage.setItem('adOff', 'false');
+      this.showToast('광고 켬', Toast.durations.SHORT, Toast.positions.CENTER);
+      return;
+    }
+
+    AsyncStorage.setItem('lastSearchCon', searchCon);
 
     this.setState({isLoaded: false});
 
@@ -110,7 +126,7 @@ class SearchScreenDb extends React.Component {
     this.showToast(
       totalCnt + '건 조회',
       Toast.durations.SHORT,
-      Toast.positions.BOTTOM,
+      Toast.positions.BOTTOM - 160,
     );
 
     this.setState({
@@ -145,6 +161,11 @@ class SearchScreenDb extends React.Component {
       this.getMoreData();
     }
   };
+
+  onIndutypeChange = value => {
+    this.setState({indutypeCon: value}, this.getInitData);
+  };
+
   render() {
     const {numToRender} = this.props;
     const {data, isLoaded, modalOpen} = this.state;
@@ -180,9 +201,10 @@ class SearchScreenDb extends React.Component {
               placeholderStyle={{color: 'grey'}}
               // placeholderIconColor="grey"
               selectedValue={this.state.indutypeCon}
-              onValueChange={value => {
-                this.setState({indutypeCon: value});
-              }}>
+              // onValueChange={value => {
+              //   this.setState({indutypeCon: value});
+              // }}
+              onValueChange={this.onIndutypeChange}>
               {indutypeList.map(indutype => {
                 return <Picker.item label={indutype} value={indutype} />;
               })}

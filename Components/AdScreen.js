@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Platform} from 'react-native';
+import {View, Platform, AsyncStorage} from 'react-native';
 import {BannerAd, BannerAdSize, TestIds} from '@react-native-firebase/admob';
 import admob, {MaxAdContentRating} from '@react-native-firebase/admob';
 import {ADMOB_KEY_ANDROID, ADMOB_KEY_IOS} from 'react-native-dotenv';
@@ -11,8 +11,14 @@ class AdScreen extends React.Component {
     this.state = {
       isLoaded: false,
     };
+  }
 
-    this.loadAd();
+  componentDidMount() {
+    AsyncStorage.getItem('adOff').then(adOff => {
+      if (adOff !== 'true') {
+        this.loadAd();
+      }
+    });
   }
 
   loadAd = () => {
