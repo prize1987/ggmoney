@@ -53,8 +53,8 @@ class AdScreen extends React.Component {
 
     return isLoaded ? (
       <BannerAd
-        // unitId={TestIds.BANNER}
-        unitId={uid}
+        unitId={TestIds.BANNER}
+        // unitId={uid}
         size={BannerAdSize.FULL_BANNER}
         // requestOptions={{
         //   requestNonPersonalizedAdsOnly: true,
