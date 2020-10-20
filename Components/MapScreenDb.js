@@ -322,7 +322,7 @@ class MapScreenDb extends React.Component {
           <View style={{justifyContent: 'center'}}>
             <Picker
               mode="dropdown"
-              iosIcon={<Icon name="arrow-down" />}
+              iosIcon={<Icon name="keyboard-arrow-down" type="MaterialIcons" />}
               style={{width: 100}}
               placeholder="업종"
               placeholderStyle={{color: 'grey'}}
@@ -339,7 +339,7 @@ class MapScreenDb extends React.Component {
           </View>
           <Item style={styles.textInput} inlineLabel>
             <Label>
-              <Icon style={styles.icon} name="search" />
+              <Icon style={styles.icon} name="search" type="MaterialIcons" />
             </Label>
             <Input
               placeholder="키워드 검색 (띄어쓰기로 구분)"
@@ -354,7 +354,11 @@ class MapScreenDb extends React.Component {
               onPress={() => {
                 this.setState({searchCon: ''});
               }}>
-              <Icon name="md-close-circle" style={styles.clearTextButton} />
+              <Icon
+                name="cancel"
+                style={styles.clearTextButton}
+                type="MaterialIcons"
+              />
             </TouchableWithoutFeedback>
           </Item>
           <CustomButton
@@ -430,14 +434,18 @@ class MapScreenDb extends React.Component {
                 <TouchableOpacity
                   style={styles.myOverlayContainer}
                   onPress={this.getCurrentPosition}>
-                  <Icon name="md-locate" />
+                  <Icon name="gps-fixed" type="MaterialIcons" />
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={styles.curOverlayContainer}
                   onPress={() => {
                     this.searchData(this.state.region);
                   }}>
-                  <Icon style={styles.curOverlayIcon} name="md-refresh" />
+                  <Icon
+                    style={styles.curOverlayIcon}
+                    name="refresh"
+                    type="MaterialIcons"
+                  />
                   <Text style={styles.curOverlayText}>현 지도에서 검색</Text>
                 </TouchableOpacity>
                 {data.length > 0 && (
@@ -446,7 +454,11 @@ class MapScreenDb extends React.Component {
                     onPress={() => {
                       this.setState({showList: !showList});
                     }}>
-                    <Icon style={styles.curOverlayIcon} name="md-list" />
+                    <Icon
+                      style={styles.curOverlayIcon}
+                      name="list"
+                      type="MaterialIcons"
+                    />
                     <Text style={styles.curOverlayText}>
                       {showList ? '목록 숨기기' : '목록 표시'}
                     </Text>

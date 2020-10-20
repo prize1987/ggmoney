@@ -195,7 +195,7 @@ class SearchScreenDb extends React.Component {
           <View style={{justifyContent: 'center'}}>
             <Picker
               mode="dropdown"
-              iosIcon={<Icon name="arrow-down" />}
+              iosIcon={<Icon name="keyboard-arrow-down" type="MaterialIcons" />}
               style={{width: 100}}
               placeholder="업종"
               placeholderStyle={{color: 'grey'}}
@@ -213,7 +213,7 @@ class SearchScreenDb extends React.Component {
           {/* </Item> */}
           <Item style={styles.textInput} inlineLabel>
             <Label>
-              <Icon style={styles.icon} name="search" />
+              <Icon style={styles.icon} name="search" type="MaterialIcons" />
             </Label>
             <Input
               placeholder="키워드 검색 (띄어쓰기로 구분)"
@@ -228,7 +228,11 @@ class SearchScreenDb extends React.Component {
               onPress={() => {
                 this.setState({searchCon: ''});
               }}>
-              <Icon name="md-close-circle" style={styles.clearTextButton} />
+              <Icon
+                name="cancel"
+                style={styles.clearTextButton}
+                type="MaterialIcons"
+              />
             </TouchableWithoutFeedback>
           </Item>
           <CustomButton

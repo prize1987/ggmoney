@@ -100,6 +100,7 @@ class App extends React.Component {
                     }
                     active={activePage === 'search'}
                     name="search"
+                    type="MaterialIcons"
                   />
                   <Text>매장 검색</Text>
                 </Button>
@@ -127,6 +128,7 @@ class App extends React.Component {
                     }
                     active={activePage === 'map'}
                     name="map"
+                    type="MaterialIcons"
                   />
                   <Text>지도 검색</Text>
                 </Button>
@@ -148,7 +150,8 @@ class App extends React.Component {
                         : styles.footerIcon
                     }
                     active={activePage === 'option'}
-                    name="md-settings"
+                    name="settings"
+                    type="MaterialIcons"
                   />
                   <Text>옵션</Text>
                 </Button>

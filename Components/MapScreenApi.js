@@ -216,7 +216,7 @@ class SearchScreenApi extends React.Component {
         <View style={styles.searchContainer}>
           <Item style={styles.textInput} inlineLabel>
             <Label>
-              <Icon style={styles.icon} name="search" />
+              <Icon style={styles.icon} name="search" type="MaterialIcons" />
             </Label>
             <Input
               placeholder="이름으로 검색"
@@ -233,7 +233,11 @@ class SearchScreenApi extends React.Component {
                 onPress={() => {
                   this.setState({searchConName: ''});
                 }}>
-                <Icon name="md-close-circle" style={styles.clearTextButton} />
+                <Icon
+                  name="cancel"
+                  style={styles.clearTextButton}
+                  type="MaterialIcons"
+                />
               </TouchableWithoutFeedback>
             ) : (
               <></>
@@ -241,7 +245,7 @@ class SearchScreenApi extends React.Component {
           </Item>
           <Item style={styles.textInput} inlineLabel>
             <Label>
-              <Icon style={styles.icon} name="search" />
+              <Icon style={styles.icon} name="search" type="MaterialIcons" />
             </Label>
             <Input
               placeholder="주소로 검색"
@@ -258,7 +262,11 @@ class SearchScreenApi extends React.Component {
                 onPress={() => {
                   this.setState({searchConAddr: ''});
                 }}>
-                <Icon name="md-close-circle" style={styles.clearTextButton} />
+                <Icon
+                  name="cancel"
+                  style={styles.clearTextButton}
+                  type="MaterialIcons"
+                />
               </TouchableWithoutFeedback>
             ) : (
               <></>
@@ -297,7 +305,13 @@ class SearchScreenApi extends React.Component {
                             ref={ref => {
                               this.markers[index] = ref;
                             }}>
-                            <Callout>
+                            <Callout
+                              onPress={() => {
+                                this.setState({
+                                  modalOpen: true,
+                                  selectedItem: item,
+                                });
+                              }}>
                               <Text style={styles.mapInfoText}>
                                 {item.CMPNM_NM}
                               </Text>
@@ -325,7 +339,7 @@ class SearchScreenApi extends React.Component {
                 <TouchableOpacity
                   style={styles.myOverlayContainer}
                   onPress={this.getCurrentPosition}>
-                  <Icon name="md-locate" />
+                  <Icon name="gps-fixed" type="MaterialIcons" />
                 </TouchableOpacity>
                 {!showList ? (
                   <TouchableOpacity
@@ -333,7 +347,11 @@ class SearchScreenApi extends React.Component {
                     onPress={() => {
                       alert('옵션-다운로드 방식 사용 기능을 켜주세요');
                     }}>
-                    <Icon style={styles.curOverlayIcon} name="md-refresh" />
+                    <Icon
+                      style={styles.curOverlayIcon}
+                      name="refresh"
+                      type="MaterialIcons"
+                    />
                     <Text style={styles.curOverlayText}>현 지도에서 검색</Text>
                   </TouchableOpacity>
                 ) : (
@@ -345,7 +363,11 @@ class SearchScreenApi extends React.Component {
                     onPress={() => {
                       this.setState({showList: !showList});
                     }}>
-                    <Icon style={styles.curOverlayIcon} name="md-list" />
+                    <Icon
+                      style={styles.curOverlayIcon}
+                      name="list"
+                      type="MaterialIcons"
+                    />
                     <Text style={styles.curOverlayText}>
                       {showList ? '목록 숨기기' : '목록 표시'}
                     </Text>

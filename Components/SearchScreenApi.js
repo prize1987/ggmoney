@@ -160,7 +160,7 @@ class SearchScreenApi extends React.Component {
         <View style={styles.searchContainer}>
           <Item style={styles.textInput} inlineLabel>
             <Label>
-              <Icon style={styles.icon} name="search" />
+              <Icon style={styles.icon} name="search" type="MaterialIcons" />
             </Label>
             <Input
               placeholder="이름으로 검색"
@@ -177,7 +177,11 @@ class SearchScreenApi extends React.Component {
                 onPress={() => {
                   this.setState({searchConName: ''});
                 }}>
-                <Icon name="md-close-circle" style={styles.clearTextButton} />
+                <Icon
+                  name="cancel"
+                  style={styles.clearTextButton}
+                  type="MaterialIcons"
+                />
               </TouchableWithoutFeedback>
             ) : (
               <></>
@@ -185,7 +189,7 @@ class SearchScreenApi extends React.Component {
           </Item>
           <Item style={styles.textInput} inlineLabel>
             <Label>
-              <Icon style={styles.icon} name="search" />
+              <Icon style={styles.icon} name="search" type="MaterialIcons" />
             </Label>
             <Input
               placeholder="주소로 검색"
@@ -202,7 +206,11 @@ class SearchScreenApi extends React.Component {
                 onPress={() => {
                   this.setState({searchConAddr: ''});
                 }}>
-                <Icon name="md-close-circle" style={styles.clearTextButton} />
+                <Icon
+                  name="cancel"
+                  style={styles.clearTextButton}
+                  type="MaterialIcons"
+                />
               </TouchableWithoutFeedback>
             ) : (
               <></>
