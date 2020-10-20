@@ -51,26 +51,26 @@ class AdScreen extends React.Component {
 
     // console.log(Platform.OS + ' : ' + uid);
 
-    return isLoaded ? (
-      <BannerAd
-        unitId={TestIds.BANNER}
-        // unitId={uid}
-        size={BannerAdSize.FULL_BANNER}
-        // requestOptions={{
-        //   requestNonPersonalizedAdsOnly: true,
-        // }}
-        onAdLoaded={() => {
-          // this.setState({bannerVisible: false});
-          console.log('Advert loaded');
-          this.setState({isLoaded: true});
-        }}
-        onAdFailedToLoad={error => {
-          console.log('Advert failed to load: ', error);
-          this.setState({isLoaded: false});
-        }}
-      />
-    ) : (
-      <></>
+    return (
+      isLoaded && (
+        <BannerAd
+          // unitId={TestIds.BANNER}
+          unitId={uid}
+          size={BannerAdSize.SMART_BANNER}
+          // requestOptions={{
+          //   requestNonPersonalizedAdsOnly: true,
+          // }}
+          onAdLoaded={() => {
+            // this.setState({bannerVisible: false});
+            console.log('Advert loaded');
+            this.setState({isLoaded: true});
+          }}
+          onAdFailedToLoad={error => {
+            console.log('Advert failed to load: ', error);
+            this.setState({isLoaded: false});
+          }}
+        />
+      )
     );
   }
 }
