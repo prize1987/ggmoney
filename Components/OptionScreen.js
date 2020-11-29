@@ -185,6 +185,11 @@ class OptionScreen extends React.Component {
         <View style={styles.bottomContainer}>
           {isDownload ? <ChoiceScreen /> : <></>}
         </View>
+        <View>
+          <Text style={styles.sourceDisplayText}>
+            - 데이터 출처 : 경기데이터드림(data.gg.go.kr) -
+          </Text>
+        </View>
       </View>
     );
   }
@@ -221,6 +226,12 @@ const styles = StyleSheet.create({
     fontSize: 12,
     paddingLeft: 10,
     // paddingTop: 10,
+    color: 'gray',
+  },
+  sourceDisplayText: {
+    fontSize: 13,
+    paddingRight: 20,
+    textAlign: 'right',
     color: 'gray',
   },
 });
