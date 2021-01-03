@@ -26,6 +26,11 @@
 	<string>ca-app-pub-2933849600819980~9594057175</string>
 	<key>GADIsAdManagerApp</key>
 	<true/>
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>nmap</string>
+		<string>itms-apps</string>
+	</array>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>

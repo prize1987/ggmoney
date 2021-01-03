@@ -1,8 +1,8 @@
 import React from 'react';
-import {View, Platform, AsyncStorage} from 'react-native';
-import {BannerAd, BannerAdSize, TestIds} from '@react-native-firebase/admob';
-import admob, {MaxAdContentRating} from '@react-native-firebase/admob';
-import {ADMOB_KEY_ANDROID, ADMOB_KEY_IOS} from 'react-native-dotenv';
+import { View, Platform, AsyncStorage } from 'react-native';
+import { BannerAd, BannerAdSize, TestIds } from '@react-native-firebase/admob';
+import admob, { MaxAdContentRating } from '@react-native-firebase/admob';
+import { ADMOB_KEY_ANDROID, ADMOB_KEY_IOS } from 'react-native-dotenv';
 
 class AdScreen extends React.Component {
   constructor(props) {
@@ -37,17 +37,17 @@ class AdScreen extends React.Component {
       .then(() => {
         // Request config successfully set!
         console.log('request success');
-        this.setState({isLoaded: true});
+        this.setState({ isLoaded: true });
       })
       .catch(error => {
         console.log(error);
-        this.setState({isLoaded: false});
+        this.setState({ isLoaded: false });
       });
   };
 
   render() {
     const uid = Platform.OS === 'ios' ? ADMOB_KEY_IOS : ADMOB_KEY_ANDROID;
-    const {isLoaded} = this.state;
+    const { isLoaded } = this.state;
 
     // console.log(Platform.OS + ' : ' + uid);
 
@@ -63,11 +63,11 @@ class AdScreen extends React.Component {
           onAdLoaded={() => {
             // this.setState({bannerVisible: false});
             console.log('Advert loaded');
-            this.setState({isLoaded: true});
+            this.setState({ isLoaded: true });
           }}
           onAdFailedToLoad={error => {
             console.log('Advert failed to load: ', error);
-            this.setState({isLoaded: false});
+            this.setState({ isLoaded: false });
           }}
         />
       )
