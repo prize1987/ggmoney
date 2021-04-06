@@ -21,6 +21,7 @@
     "react-native-maps": "0.27.1",
     "react-native-root-toast": "^3.2.1",
     "react-native-sqlite-storage": "^5.0.0",
+    "react-native-tracking-transparency": "^0.1.0",
     "react-navigation": "^4.4.2"
   },
   "devDependencies": {
