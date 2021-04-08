@@ -10,13 +10,15 @@ import {
 } from 'react-native';
 import {Footer, FooterTab, Button, Icon} from 'native-base';
 
-import SearchScreenApi from './Components/SearchScreenApi';
-import SearchScreenDb from './Components/SearchScreenDb';
+import SearchScreenApi from './Components/APIComponents/SearchScreenApi';
+import SearchScreenDb from './Components/DBComponents/SearchScreenDb';
 import AdScreen from './Components/AdScreen';
 import FirstScreen from './Components/FirstScreen';
 import OptionScreen from './Components/OptionScreen';
-import MapScreenDb from './Components/MapScreenDb';
-import MapScreenApi from './Components/MapScreenApi';
+import MapScreenDb from './Components/DBComponents/MapScreenDb';
+import MapScreenApi from './Components/APIComponents/MapScreenApi';
+import SearchScreenAws from './Components/AWSComponents/SearchScreenAws';
+import MapScreenAws from './Components/AWSComponents/MapScreenAws';
 
 class App extends React.Component {
   state = {
@@ -45,6 +47,10 @@ class App extends React.Component {
     this.setState({activePage: 'map'});
   };
 
+  callOption = () => {
+    this.setState({activePage: 'option'});
+  };
+
   render() {
     const {activePage, isDownload} = this.state;
 
@@ -60,13 +66,18 @@ class App extends React.Component {
                 isDownload ? (
                   <SearchScreenDb callMapSearch={this.callMapSearch} />
                 ) : (
-                  <SearchScreenApi callMapSearch={this.callMapSearch} />
+                  // <SearchScreenApi callMapSearch={this.callMapSearch} />
+                  <SearchScreenAws
+                    callMapSearch={this.callMapSearch}
+                    callOption={this.callOption}
+                  />
                 )
               ) : activePage === 'map' ? (
                 isDownload ? (
                   <MapScreenDb />
                 ) : (
-                  <MapScreenApi />
+                  // <MapScreenApi />
+                  <MapScreenAws callOption={this.callOption} />
                 )
               ) : activePage === 'option' ? (
                 <OptionScreen />

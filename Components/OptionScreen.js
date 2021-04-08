@@ -44,16 +44,14 @@ class OptionScreen extends React.Component {
               await db.deleteGgmoneyAll();
               await db.initMstSigun();
               await AsyncStorage.removeItem('isDownload');
-              await AsyncStorage.removeItem('isSave');
-              this.setState({isDownload: false, isSave: false});
+              this.setState({isDownload: false});
             },
           },
           {
             text: '아니오',
             onPress: async () => {
               await AsyncStorage.removeItem('isDownload');
-              await AsyncStorage.removeItem('isSave');
-              this.setState({isDownload: false, isSave: false});
+              this.setState({isDownload: false});
             },
           },
           {
@@ -67,21 +65,8 @@ class OptionScreen extends React.Component {
         {cancelable: false},
       );
     } else {
-      Alert.alert(
-        '데이터 다운로드',
-        '표시되는 리스트에서 시군을 선택해주세요.',
-        [
-          {
-            text: '확인',
-            style: 'default',
-          },
-        ],
-        {cancelable: false},
-      );
-
       AsyncStorage.setItem('isDownload', 'true');
-      AsyncStorage.setItem('isSave', 'true');
-      this.setState({isDownload: true, isSave: true});
+      this.setState({isDownload: true});
     }
   };
 
@@ -164,18 +149,14 @@ class OptionScreen extends React.Component {
               <View>
                 <View style={{flexDirection: 'row', alignContent: 'center'}}>
                   <Text style={styles.cardItemText}>마지막 검색어 저장</Text>
-                  <Switch
-                    onValueChange={this.saveToggle}
-                    value={isSave}
-                    disabled={!isDownload}
-                  />
+                  <Switch onValueChange={this.saveToggle} value={isSave} />
                 </View>
                 <View>
                   <Text style={styles.cardItemSubText}>
-                    마지막으로 검색한 검색어를 저장합니다.
+                    마지막으로 검색한 검색어를 저장하여
                   </Text>
                   <Text style={styles.cardItemSubText}>
-                    다운로드 방식 사용시 활성화됩니다.
+                    앱 실행시 자동 검색합니다.
                   </Text>
                 </View>
               </View>
@@ -183,7 +164,7 @@ class OptionScreen extends React.Component {
           </Card>
         </View>
         <View style={styles.bottomContainer}>
-          {isDownload ? <ChoiceScreen /> : <></>}
+          <ChoiceScreen isDownload={isDownload} />
         </View>
         <View>
           <Text style={styles.sourceDisplayText}>

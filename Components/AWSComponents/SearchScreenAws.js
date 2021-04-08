@@ -9,36 +9,62 @@ import {
   Modal,
   TouchableWithoutFeedback,
   Keyboard,
+  AsyncStorage,
 } from 'react-native';
-import {Item, Label, Input, Icon, ListItem} from 'native-base';
-import ApiMain from './ApiMain';
+import {Item, Label, Input, Icon, ListItem, Picker} from 'native-base';
+import CustomButton from '../CustomButton';
 import Toast from 'react-native-root-toast';
+import StoreInfoModal from '../StoreInfoModal';
+import AWSApi from '../AWSApi';
 
-import StoreInfoModal from './StoreInfoModal';
+const indutypeList = [
+  '전체',
+  '음식점',
+  '유통/편의점',
+  '제과/음료식품',
+  '숙박',
+  '미용/안경/보건위생',
+  '문화/취미',
+  '여행',
+  '레저',
+  '의류/잡화/생활가전',
+  '주유소',
+  '자동차판매/정비',
+  '서적/문구',
+  '학원',
+  '사무통신',
+  '서비스',
+  '병원',
+  '약국',
+  '기타 의료기관',
+  '보험',
+  '기타',
+];
 
-class SearchScreenApi extends React.Component {
-  static defaultProps = {numToRender: 50};
+class SearchScreenAws extends React.Component {
+  static defaultProps = {numToRender: 20};
   state = {
-    searchConName: '',
-    searchConAddr: '',
-    addrType: '',
+    indutypeCon: '',
+    searchCon: '',
     api: null,
     data: [],
     fetchCnt: 0,
     totalCnt: 0,
-    nextIndex: 1,
-    mode: 'start',
+    isLoaded: false,
     modalOpen: false,
     selectedItem: {},
+    selectedSiguns: null,
   };
 
   constructor(props) {
     super(props);
 
-    this.state.api = new ApiMain();
+    this.state.api = new AWSApi();
   }
 
   componentDidMount() {
+    this.loadLastStatus();
+
     // this.getInitData();
     // console.log(this.props.numToRender);
   }
@@ -53,33 +79,59 @@ class SearchScreenApi extends React.Component {
     });
   }
 
-  async getInitData() {
-    const {numToRender} = this.props;
-    const {searchConName, searchConAddr, api} = this.state;
-
-    this.setState({mode: 'loading'});
-
-    let addrType = 'lotno';
-    let totalCnt = await api.searchApiDataCount(
-      searchConName,
-      searchConAddr,
-      addrType,
-    );
-    if (totalCnt === 0) {
-      addrType = 'road';
-      totalCnt = await api.searchApiDataCount(
-        searchConName,
-        searchConAddr,
-        addrType,
-      );
+  loadLastStatus = async () => {
+    const selectedSiguns = await AsyncStorage.getItem('selectedSiguns');
+    if (selectedSiguns === null) {
+      this.props.callOption();
+    } else {
+      this.setState({selectedSiguns: selectedSiguns});
     }
 
-    let recvData = await api.searchApiData(
-      1,
+    const isSave = await AsyncStorage.getItem('isSave');
+    const searchCon = await AsyncStorage.getItem('lastSearchCon');
+    if (isSave === 'true') {
+      if (searchCon === null) {
+        searchCon = '';
+      }
+
+      this.setState({searchCon: searchCon});
+      this.getInitData();
+    } else {
+      this.getInitData();
+    }
+  };
+
+  async getInitData() {
+    const {numToRender} = this.props;
+    const {indutypeCon, searchCon, api, selectedSiguns} = this.state;
+    // console.log(indutypeCon);
+
+    if (searchCon === '수진아사랑해행복하자') {
+      AsyncStorage.setItem('adOff', 'true');
+      this.showToast('광고 끔', Toast.durations.SHORT, Toast.positions.CENTER);
+      return;
+    }
+    if (searchCon === '몽이순산기원') {
+      AsyncStorage.setItem('adOff', 'false');
+      this.showToast('광고 켬', Toast.durations.SHORT, Toast.positions.CENTER);
+      return;
+    }
+
+    AsyncStorage.setItem('lastSearchCon', searchCon);
+
+    this.setState({isLoaded: false});
+
+    let totalCnt = await api.getStoreInfoCount(
+      selectedSiguns,
+      indutypeCon,
+      searchCon,
+    );
+    let recvData = await api.getStoreInfo(
+      selectedSiguns,
+      indutypeCon,
+      searchCon,
+      0,
       numToRender,
-      searchConName,
-      searchConAddr,
-      addrType,
     );
 
     this.showToast(
@@ -90,40 +142,28 @@ class SearchScreenApi extends React.Component {
 
     this.setState({
       data: recvData,
-      fetchCnt: recvData ? recvData.length : 0,
+      fetchCnt: recvData.length,
       totalCnt: totalCnt,
-      addrType: addrType,
-      nextIndex: 2,
-      mode: 'loaded',
+      isLoaded: true,
     });
   }
   async getMoreData() {
     const {numToRender} = this.props;
-    const {
-      searchConName,
-      searchConAddr,
-      addrType,
-      data,
-      fetchCnt,
-      nextIndex,
-      api,
-    } = this.state;
+    const {indutypeCon, searchCon, data, fetchCnt, api} = this.state;
 
-    let recvData = await api.searchApiData(
-      nextIndex,
+    let recvData = await api.getStoreInfo(
+      selectedSiguns,
+      indutypeCon,
+      searchCon,
+      fetchCnt,
       numToRender,
-      searchConName,
-      searchConAddr,
-      addrType,
     );
 
-    if (recvData !== null) {
-      this.setState({
-        data: [...data, ...recvData],
-        fetchCnt: fetchCnt + recvData.length,
-        nextIndex: nextIndex + 1,
-      });
-    }
+    this.setState({
+      data: [...data, ...recvData],
+      fetchCnt: fetchCnt + recvData.length,
+      // isLoaded: true,
+    });
   }
 
   onEndReached = () => {
@@ -133,9 +173,14 @@ class SearchScreenApi extends React.Component {
       this.getMoreData();
     }
   };
+
+  onIndutypeChange = value => {
+    this.setState({indutypeCon: value}, this.getInitData);
+  };
+
   render() {
     const {numToRender} = this.props;
-    const {data, mode, modalOpen} = this.state;
+    const {data, isLoaded, modalOpen} = this.state;
 
     return (
       <>
@@ -158,67 +203,62 @@ class SearchScreenApi extends React.Component {
         </Modal>
 
         <View style={styles.searchContainer}>
+          {/* <Item picker> */}
+          <View style={{justifyContent: 'center'}}>
+            <Picker
+              mode="dropdown"
+              iosIcon={<Icon name="keyboard-arrow-down" type="MaterialIcons" />}
+              style={{width: 100}}
+              placeholder="업종"
+              placeholderStyle={{color: 'grey'}}
+              // placeholderIconColor="grey"
+              selectedValue={this.state.indutypeCon}
+              // onValueChange={value => {
+              //   this.setState({indutypeCon: value});
+              // }}
+              onValueChange={this.onIndutypeChange}>
+              {indutypeList.map(indutype => {
+                return <Picker.item label={indutype} value={indutype} />;
+              })}
+            </Picker>
+          </View>
+          {/* </Item> */}
           <Item style={styles.textInput} inlineLabel>
             <Label>
               <Icon style={styles.icon} name="search" type="MaterialIcons" />
             </Label>
             <Input
-              placeholder="이름으로 검색"
+              placeholder="키워드 검색 (띄어쓰기로 구분)"
               onChangeText={text => {
-                this.setState({searchConName: text});
+                this.setState({searchCon: text});
               }}
-              value={this.state.searchConName}
+              value={this.state.searchCon}
               onSubmitEditing={() => this.getInitData()}
               returnKeyType="search"
-              clearButtonMode={true}
             />
-            {this.state.searchConName.length > 0 ? (
-              <TouchableWithoutFeedback
-                onPress={() => {
-                  this.setState({searchConName: ''});
-                }}>
-                <Icon
-                  name="cancel"
-                  style={styles.clearTextButton}
-                  type="MaterialIcons"
-                />
-              </TouchableWithoutFeedback>
-            ) : (
-              <></>
-            )}
+            <TouchableWithoutFeedback
+              onPress={() => {
+                this.setState({searchCon: ''});
+              }}>
+              <Icon
+                name="cancel"
+                style={styles.clearTextButton}
+                type="MaterialIcons"
+              />
+            </TouchableWithoutFeedback>
           </Item>
-          <Item style={styles.textInput} inlineLabel>
-            <Label>
-              <Icon style={styles.icon} name="search" type="MaterialIcons" />
-            </Label>
-            <Input
-              placeholder="주소로 검색"
-              onChangeText={text => {
-                this.setState({searchConAddr: text});
-              }}
-              value={this.state.searchConAddr}
-              onSubmitEditing={() => this.getInitData()}
-              returnKeyType="search"
-              clearButtonMode={true}
-            />
-            {this.state.searchConAddr.length > 0 ? (
-              <TouchableWithoutFeedback
-                onPress={() => {
-                  this.setState({searchConAddr: ''});
-                }}>
-                <Icon
-                  name="cancel"
-                  style={styles.clearTextButton}
-                  type="MaterialIcons"
-                />
-              </TouchableWithoutFeedback>
-            ) : (
-              <></>
-            )}
-          </Item>
+          <CustomButton
+            title="검색"
+            titleColor="white"
+            buttonColor="#2788e5"
+            onPress={() => {
+              Keyboard.dismiss();
+              this.getInitData();
+            }}
+          />
         </View>
         <View style={styles.listContainer}>
-          {mode === 'loaded' ? (
+          {isLoaded ? (
             <FlatList
               style={styles.list}
               data={data}
@@ -242,29 +282,14 @@ class SearchScreenApi extends React.Component {
                         {item.REFINE_ROADNM_ADDR}
                       </Text>
                       <Text style={styles.itemSub}>{item.TELNO}</Text>
+                      {/* <Text>{this.state.fetchCnt}</Text> */}
                     </TouchableOpacity>
                   </ListItem>
                 );
               }}
             />
-          ) : mode === 'loading' ? (
-            <ActivityIndicator size={50} style={{marginTop: 50}} />
           ) : (
-            <TouchableWithoutFeedback
-              onPress={() => {
-                Keyboard.dismiss();
-              }}>
-              <View>
-                <Text style={styles.infoText}>검색어를 입력해주세요.</Text>
-                <Text />
-                <Text style={styles.infoSub}>
-                  옵션 - 다운로드 방식 기능을 확인해보세요
-                </Text>
-                <Text style={styles.infoSub}>
-                  보다 빠르고 편리한 검색이 가능합니다.
-                </Text>
-              </View>
-            </TouchableWithoutFeedback>
+            <ActivityIndicator size={50} style={{marginTop: 50}} />
           )}
         </View>
       </>
@@ -280,7 +305,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     // alignItems:''
     flexDirection: 'row',
-    paddingHorizontal: 10,
+    // paddingHorizontal: 10,
     // paddingVertical: 10,
   },
   textInput: {
@@ -305,7 +330,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   icon: {
-    fontSize: 18,
+    fontSize: 24,
     color: 'gray',
     // marginHorizontal:,
   },
@@ -319,9 +344,7 @@ const styles = StyleSheet.create({
   },
   listContainer: {
     flex: 1,
-    // alignContent: 'stretch',
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignContent: 'stretch',
     // backgroundColor: '#2fd6c2',
   },
   list: {
@@ -329,19 +352,10 @@ const styles = StyleSheet.create({
     // backgroundColor: 'red',
     alignSelf: 'stretch',
   },
-  infoText: {
-    fontSize: 18,
-    alignSelf: 'center',
-  },
-  infoSub: {
-    fontSize: 14,
-    color: 'grey',
-    alignSelf: 'center',
-  },
   clearTextButton: {
     fontSize: 20,
     color: 'gray',
   },
 });
 
-export default SearchScreenApi;
+export default SearchScreenAws;

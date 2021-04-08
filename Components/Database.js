@@ -454,6 +454,35 @@ class GGDB {
       // }
     });
   };
+  selectMstSigunUse = () => {
+    let {db} = this.state;
+
+    let selectQuery = 'SELECT SIGUN_NM FROM MST_SIGUN WHERE USE_FLAG = 1';
+
+    return new Promise((resolve, reject) => {
+      // if (db !== null) {
+      db.transaction(tx => {
+        tx.executeSql(
+          selectQuery,
+          [],
+          (tx, results) => {
+            let ret = [];
+            let dataLength = results.rows.length;
+            // console.log(ret.length);
+            for (let i = 0; i < dataLength; i++) {
+              ret.push(results.rows.item(i).SIGUN_NM);
+            }
+
+            resolve(ret);
+          },
+          err => {
+            reject(err);
+          },
+        );
+      });
+      // }
+    });
+  };
   updateMstSigun = (sigun, itemCnt, useFlag) => {
     let {db} = this.state;
     let updateCnt = 0;

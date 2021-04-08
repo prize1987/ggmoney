@@ -12,13 +12,13 @@ import {
   Keyboard,
 } from 'react-native';
 import {Item, Label, Input, Icon, ListItem} from 'native-base';
-import ApiMain from './ApiMain';
+import ApiMain from '../ApiMain';
 import Toast from 'react-native-root-toast';
 
 import Geolocation from '@react-native-community/geolocation';
 import MapView, {PROVIDER_GOOGLE, Marker, Callout} from 'react-native-maps';
 
-import StoreInfoModal from './StoreInfoModal';
+import StoreInfoModal from '../StoreInfoModal';
 
 class SearchScreenApi extends React.Component {
   state = {

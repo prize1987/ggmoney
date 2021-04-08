@@ -11,11 +11,11 @@ import {
   Keyboard,
   AsyncStorage,
 } from 'react-native';
-import { Item, Label, Input, Icon, ListItem, Picker } from 'native-base';
-import CustomButton from './CustomButton';
-import GGDB from './Database';
+import {Item, Label, Input, Icon, ListItem, Picker} from 'native-base';
+import CustomButton from '../CustomButton';
+import GGDB from '../Database';
 import Toast from 'react-native-root-toast';
-import StoreInfoModal from './StoreInfoModal';
+import StoreInfoModal from '../StoreInfoModal';
 
 const indutypeList = [
   '전체',
@@ -42,7 +42,7 @@ const indutypeList = [
 ];
 
 class SearchScreenDb extends React.Component {
-  static defaultProps = { numToRender: 20 };
+  static defaultProps = {numToRender: 20};
   state = {
     indutypeCon: '',
     searchCon: '',
@@ -86,7 +86,7 @@ class SearchScreenDb extends React.Component {
             searchCon = '';
           }
 
-          this.setState({ searchCon: searchCon });
+          this.setState({searchCon: searchCon});
           this.getInitData();
         });
       } else {
@@ -96,8 +96,8 @@ class SearchScreenDb extends React.Component {
   };
 
   async getInitData() {
-    const { numToRender } = this.props;
-    const { indutypeCon, searchCon, db } = this.state;
+    const {numToRender} = this.props;
+    const {indutypeCon, searchCon, db} = this.state;
     // console.log(indutypeCon);
 
     if (searchCon === '수진아사랑해행복하자') {
@@ -113,7 +113,7 @@ class SearchScreenDb extends React.Component {
 
     AsyncStorage.setItem('lastSearchCon', searchCon);
 
-    this.setState({ isLoaded: false });
+    this.setState({isLoaded: false});
 
     let totalCnt = await db.selectGgmoneyCnt(indutypeCon, searchCon);
     let recvData = await db.selectGgmoney(
@@ -137,8 +137,8 @@ class SearchScreenDb extends React.Component {
     });
   }
   async getMoreData() {
-    const { numToRender } = this.props;
-    const { indutypeCon, searchCon, data, fetchCnt, db } = this.state;
+    const {numToRender} = this.props;
+    const {indutypeCon, searchCon, data, fetchCnt, db} = this.state;
 
     let recvData = await db.selectGgmoney(
       indutypeCon,
@@ -155,7 +155,7 @@ class SearchScreenDb extends React.Component {
   }
 
   onEndReached = () => {
-    const { fetchCnt, totalCnt } = this.state;
+    const {fetchCnt, totalCnt} = this.state;
 
     if (fetchCnt < totalCnt) {
       this.getMoreData();
@@ -163,12 +163,12 @@ class SearchScreenDb extends React.Component {
   };
 
   onIndutypeChange = value => {
-    this.setState({ indutypeCon: value }, this.getInitData);
+    this.setState({indutypeCon: value}, this.getInitData);
   };
 
   render() {
-    const { numToRender } = this.props;
-    const { data, isLoaded, modalOpen } = this.state;
+    const {numToRender} = this.props;
+    const {data, isLoaded, modalOpen} = this.state;
 
     return (
       <>
@@ -182,7 +182,7 @@ class SearchScreenDb extends React.Component {
           <StoreInfoModal
             item={this.state.selectedItem}
             onClose={() => {
-              this.setState({ modalOpen: !modalOpen });
+              this.setState({modalOpen: !modalOpen});
             }}
             showToast={this.showToast}
             callMapSearch={this.props.callMapSearch}
@@ -192,13 +192,13 @@ class SearchScreenDb extends React.Component {
 
         <View style={styles.searchContainer}>
           {/* <Item picker> */}
-          <View style={{ justifyContent: 'center' }}>
+          <View style={{justifyContent: 'center'}}>
             <Picker
               mode="dropdown"
               iosIcon={<Icon name="keyboard-arrow-down" type="MaterialIcons" />}
-              style={{ width: 100 }}
+              style={{width: 100}}
               placeholder="업종"
-              placeholderStyle={{ color: 'grey' }}
+              placeholderStyle={{color: 'grey'}}
               // placeholderIconColor="grey"
               selectedValue={this.state.indutypeCon}
               // onValueChange={value => {
@@ -218,7 +218,7 @@ class SearchScreenDb extends React.Component {
             <Input
               placeholder="키워드 검색 (띄어쓰기로 구분)"
               onChangeText={text => {
-                this.setState({ searchCon: text });
+                this.setState({searchCon: text});
               }}
               value={this.state.searchCon}
               onSubmitEditing={() => this.getInitData()}
@@ -226,7 +226,7 @@ class SearchScreenDb extends React.Component {
             />
             <TouchableWithoutFeedback
               onPress={() => {
-                this.setState({ searchCon: '' });
+                this.setState({searchCon: ''});
               }}>
               <Icon
                 name="cancel"
@@ -253,13 +253,13 @@ class SearchScreenDb extends React.Component {
               initialNumToRender={numToRender}
               onEndReachedThreshold={1}
               onEndReached={this.onEndReached}
-              renderItem={({ item }) => {
+              renderItem={({item}) => {
                 return (
-                  <ListItem style={{ flex: 1 }}>
+                  <ListItem style={{flex: 1}}>
                     <TouchableOpacity
                       style={styles.itemArea}
                       onPress={() => {
-                        this.setState({ modalOpen: true, selectedItem: item });
+                        this.setState({modalOpen: true, selectedItem: item});
                       }}>
                       <Text style={styles.itemTitle}>{item.CMPNM_NM}</Text>
                       <Text style={styles.itemSub}>{item.INDUTYPE_NM}</Text>
@@ -277,8 +277,8 @@ class SearchScreenDb extends React.Component {
               }}
             />
           ) : (
-              <ActivityIndicator size={50} style={{ marginTop: 50 }} />
-            )}
+            <ActivityIndicator size={50} style={{marginTop: 50}} />
+          )}
         </View>
       </>
     );

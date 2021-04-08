@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Alert,
   SafeAreaView,
+  AsyncStorage,
 } from 'react-native';
 import {Button} from 'native-base';
 import Toast from 'react-native-root-toast';
@@ -59,6 +60,17 @@ class ChoiceScreen extends React.Component {
     let cnt = await db.selectMstSigunUseCnt();
     if (cnt === 0) {
       this.setState({mode: 'first'});
+      Alert.alert(
+        '시군 선택',
+        '표시되는 리스트에서 시군을 선택해주세요.',
+        [
+          {
+            text: '확인',
+            style: 'default',
+          },
+        ],
+        {cancelable: false},
+      );
     } else {
       this.getMstSigun();
     }
@@ -85,24 +97,38 @@ class ChoiceScreen extends React.Component {
     }
 
     this.setState({data: sigun, mode: 'select'});
+
+    const selectedSiguns = sigun
+      .filter(s => s.USE_FLAG === 1)
+      .map(s => s.SIGUN_NM)
+      .join('+');
+    AsyncStorage.setItem('selectedSiguns', selectedSiguns);
   };
 
   firstSigunChoice = async sigun => {
     const {db, api} = this.state;
-
-    this.setState({mode: 'update'});
+    const {isDownload} = this.props;
 
     await db.updateMstSigun(sigun, 0, 1);
-    let apiCnt = await api.getApiSigunCount(sigun);
-    this.refreshData(sigun, apiCnt);
+
+    if (isDownload) {
+      let apiCnt = await api.getApiSigunCount(sigun);
+      this.setState({mode: 'update'});
+      this.refreshData(sigun, apiCnt);
+    } else {
+      this.getMstSigun();
+    }
   };
   toggleUseFlag = async (sigun, value) => {
     const {api, db} = this.state;
+    const {isDownload} = this.props;
 
     if (value) {
       await db.updateMstSigun(sigun.SIGUN_NM, 0, 1);
-      let apiCnt = await api.getApiSigunCount(sigun.SIGUN_NM);
-      this.refreshData(sigun.SIGUN_NM, apiCnt);
+      if (isDownload) {
+        let apiCnt = await api.getApiSigunCount(sigun.SIGUN_NM);
+        this.refreshData(sigun.SIGUN_NM, apiCnt);
+      }
     } else {
       this.setState({mode: 'delete'});
       await db.updateMstSigun(sigun.SIGUN_NM, 0, 0);
@@ -129,7 +155,6 @@ class ChoiceScreen extends React.Component {
         {
           text: '나중에',
           onPress: () => {
-            console.log('Cancel Pressed');
             this.getMstSigun();
           },
           style: 'cancel',
@@ -137,7 +162,6 @@ class ChoiceScreen extends React.Component {
         {
           text: '다운로드',
           onPress: () => {
-            console.log('OK Pressed');
             updateInfo.sigun = sigun;
             updateInfo.dbCount = 0;
             updateInfo.apiCount = apiCnt;
@@ -231,6 +255,7 @@ class ChoiceScreen extends React.Component {
 
   render() {
     const {data, mode, updateInfo} = this.state;
+    const {isDownload} = this.props;
 
     return (
       <>
@@ -274,7 +299,7 @@ class ChoiceScreen extends React.Component {
                   return (
                     <View style={styles.itemContainer}>
                       <Text style={styles.itemText}>{sigun.SIGUN_NM}</Text>
-                      {sigun.USE_FLAG === 1 ? (
+                      {sigun.USE_FLAG === 1 && isDownload ? (
                         sigun.ITEM_CNT < sigun.API_CNT ? (
                           <View style={styles.updateCheckContainer}>
                             <View>

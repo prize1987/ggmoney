@@ -12,13 +12,13 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 import {Item, Label, Input, Icon, ListItem, Picker} from 'native-base';
-import CustomButton from './CustomButton';
-import GGDB from './Database';
+import CustomButton from '../CustomButton';
 import Toast from 'react-native-root-toast';
 import Geolocation from '@react-native-community/geolocation';
 import MapView, {PROVIDER_GOOGLE, Marker, Callout} from 'react-native-maps';
 
-import StoreInfoModal from './StoreInfoModal';
+import AWSApi from '../AWSApi';
+import StoreInfoModal from '../StoreInfoModal';
 
 const indutypeList = [
   '전체',
@@ -50,7 +50,7 @@ class MapScreenDb extends React.Component {
   state = {
     indutypeCon: '',
     searchCon: '',
-    db: null,
+    api: null,
     data: [],
     fetchCnt: 0,
     isLoaded: false,
@@ -63,6 +63,7 @@ class MapScreenDb extends React.Component {
     showList: false,
     modalOpen: false,
     selectedItem: {},
+    selectedSiguns: null,
   };
 
   numToRender = 100;
@@ -70,7 +71,7 @@ class MapScreenDb extends React.Component {
   constructor(props) {
     super(props);
 
-    this.state.db = new GGDB();
+    this.state.api = new AWSApi();
   }
 
   componentDidMount() {
@@ -84,36 +85,30 @@ class MapScreenDb extends React.Component {
   }
 
   loadLastStatus = async () => {
-    AsyncStorage.getItem('lastLatitude').then(latitude => {
-      AsyncStorage.getItem('lastLongitude').then(longitude => {
-        AsyncStorage.getItem('lastLatitudeDelta').then(latitudeDelta => {
-          AsyncStorage.getItem('lastLongitudeDelta').then(longitudeDelta => {
-            if (latitude && longitude && latitudeDelta && longitudeDelta) {
-              let lastRegion = {
-                latitude: parseFloat(latitude),
-                longitude: parseFloat(longitude),
-                latitudeDelta: parseFloat(latitudeDelta),
-                longitudeDelta: parseFloat(longitudeDelta),
-              };
+    const latitude = await AsyncStorage.getItem('lastLatitude');
+    const longitude = await AsyncStorage.getItem('lastLongitude');
+    const latitudeDelta = await AsyncStorage.getItem('lastLatitudeDelta');
+    const longitudeDelta = await AsyncStorage.getItem('lastLongitudeDelta');
+    if (latitude && longitude && latitudeDelta && longitudeDelta) {
+      let lastRegion = {
+        latitude: parseFloat(latitude),
+        longitude: parseFloat(longitude),
+        latitudeDelta: parseFloat(latitudeDelta),
+        longitudeDelta: parseFloat(longitudeDelta),
+      };
 
-              this.setState({region: lastRegion});
-            }
-          });
-        });
-      });
-    });
+      this.setState({region: lastRegion});
+    }
 
-    AsyncStorage.getItem('isSave').then(isSave => {
-      if (isSave === 'true') {
-        AsyncStorage.getItem('lastSearchCon').then(searchCon => {
-          if (searchCon === null) {
-            searchCon = '';
-          }
-
-          this.setState({searchCon: searchCon});
-        });
+    const isSave = await AsyncStorage.getItem('isSave');
+    const searchCon = await AsyncStorage.getItem('lastSearchCon');
+    if (isSave === 'true') {
+      if (searchCon === null) {
+        searchCon = '';
       }
-    });
+
+      this.setState({searchCon: searchCon});
+    }
 
     // AsyncStorage.getItem('lastIndutypeCon').then(induTypeCon => {
     //   if (induTypeCon === null) {
@@ -125,6 +120,13 @@ class MapScreenDb extends React.Component {
   };
 
   loadAddrRequest = async () => {
+    const selectedSiguns = await AsyncStorage.getItem('selectedSiguns');
+    if (selectedSiguns === null) {
+      this.props.callOption();
+    } else {
+      this.setState({selectedSiguns: selectedSiguns});
+    }
+
     AsyncStorage.getItem('addrRequest').then(addr => {
       if (addr) {
         this.setState({searchCon: addr}, () => {
@@ -159,7 +161,7 @@ class MapScreenDb extends React.Component {
   }
 
   async searchData(area, searchConSave = true) {
-    const {indutypeCon, searchCon, db} = this.state;
+    const {indutypeCon, searchCon, api, selectedSiguns} = this.state;
     // console.log(searchCon);
 
     if (searchConSave) {
@@ -171,7 +173,8 @@ class MapScreenDb extends React.Component {
     let recvData;
 
     if (area === undefined) {
-      recvData = await db.selectGgmoney(
+      recvData = await api.getStoreInfo(
+        selectedSiguns,
         indutypeCon,
         searchCon,
         0,
@@ -183,7 +186,8 @@ class MapScreenDb extends React.Component {
       let lon_lcl = area.longitude - area.longitudeDelta / 2;
       let lon_ucl = area.longitude + area.longitudeDelta / 2;
 
-      recvData = await db.selectGgmoneyByArea(
+      recvData = await api.getStoreInfoByArea(
+        selectedSiguns,
         indutypeCon,
         searchCon,
         lat_lcl,
