@@ -88,7 +88,7 @@ class SearchScreenAws extends React.Component {
     }
 
     const isSave = await AsyncStorage.getItem('isSave');
-    const searchCon = await AsyncStorage.getItem('lastSearchCon');
+    let searchCon = await AsyncStorage.getItem('lastSearchCon');
     if (isSave === 'true') {
       if (searchCon === null) {
         searchCon = '';

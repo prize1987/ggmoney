@@ -1,8 +1,12 @@
 import React from 'react';
 import {Platform, AsyncStorage} from 'react-native';
-import {BannerAd, BannerAdSize, TestIds} from '@react-native-firebase/admob';
-import admob, {MaxAdContentRating} from '@react-native-firebase/admob';
-import {
+import admob, {
+  BannerAd,
+  BannerAdSize,
+  TestIds,
+  MaxAdContentRating,
+} from '@react-native-firebase/admob';
+import TrackingTransparency, {
   getTrackingStatus,
   requestTrackingPermission,
 } from 'react-native-tracking-transparency';
@@ -22,11 +26,11 @@ class AdScreen extends React.Component {
   }
 
   checkTrackingTransparency = async () => {
-    const trackingStatus = await getTrackingStatus();
-    console.log('trackingStatus', trackingStatus);
-    if (trackingStatus === 'not-determined') {
-      const requestStatus = await requestTrackingPermission();
-      console.log('requestStatus', requestStatus);
+    if (TrackingTransparency) {
+      const trackingStatus = await getTrackingStatus();
+      if (trackingStatus === 'not-determined') {
+        const requestStatus = await requestTrackingPermission();
+      }
     }
 
     AsyncStorage.getItem('adOff').then(adOff => {
@@ -55,7 +59,7 @@ class AdScreen extends React.Component {
         this.setState({isLoaded: true});
       })
       .catch(error => {
-        console.log(error);
+        console.log('AdScreen', error);
         this.setState({isLoaded: false});
       });
   };

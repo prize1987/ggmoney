@@ -65,8 +65,8 @@ class StoreInfoModal extends React.Component {
                   let addr = this.props.item.REFINE_LOTNO_ADDR
                     ? this.props.item.REFINE_LOTNO_ADDR
                     : this.props.item.REFINE_ROADNM_ADDR
-                      ? this.props.item.REFINE_ROADNM_ADDR
-                      : '';
+                    ? this.props.item.REFINE_ROADNM_ADDR
+                    : '';
                   if (addr !== null && addr !== undefined && addr.length > 0) {
                     this.props.callMapSearch(addr);
                   } else {
@@ -77,70 +77,78 @@ class StoreInfoModal extends React.Component {
               </TouchableHighlight>
             )}
 
-          <TouchableHighlight
-            style={styles.buttonContainer}
-            onPress={() => {
-              const APP_STORE_LINK = 'itms-apps://itunes.apple.com/us/app/apple-store/id311867728?mt=8';
-              const PLAY_STORE_LINK = 'market://details?id=com.nhn.android.nmap';
-              let nmapUrl = "nmap://search";
-              let nmapUrlParams = "";
+          {Platform.OS === 'android' && (
+            <TouchableHighlight
+              style={styles.buttonContainer}
+              onPress={() => {
+                const APP_STORE_LINK =
+                  'itms-apps://itunes.apple.com/us/app/apple-store/id311867728?mt=8';
+                const PLAY_STORE_LINK =
+                  'market://details?id=com.nhn.android.nmap';
+                let nmapUrl = 'nmap://search';
+                let nmapUrlParams = '';
 
-              // nmapUrlParams += "?lat=" + this.props.item.REFINE_WGS84_LAT;
-              // nmapUrlParams += "&lng=" + this.props.item.REFINE_WGS84_LOGT;
-              nmapUrlParams += "?query=" +
-                (this.props.item.REFINE_LOTNO_ADDR
-                  ? this.props.item.REFINE_LOTNO_ADDR
-                  : this.props.item.REFINE_ROADNM_ADDR);
+                // nmapUrlParams += "?lat=" + this.props.item.REFINE_WGS84_LAT;
+                // nmapUrlParams += "&lng=" + this.props.item.REFINE_WGS84_LOGT;
+                nmapUrlParams +=
+                  '?query=' +
+                  (this.props.item.REFINE_LOTNO_ADDR
+                    ? this.props.item.REFINE_LOTNO_ADDR
+                    : this.props.item.REFINE_ROADNM_ADDR);
 
-              nmapUrlParams += "&appname=com.yoongi.ggmoney";
-              nmapUrl += nmapUrlParams;
+                nmapUrlParams += '&appname=com.yoongi.ggmoney';
+                nmapUrl += nmapUrlParams;
 
-              console.log(nmapUrl);
-              Linking.openURL(nmapUrl).then(supported => {
-                console.log(supported);
-              }).catch(err => {
-                Alert.alert(
-                  "", "네이버지도 App이 존재하지 않습니다.\n다운로드받으시겠습니까?",
-                  [
-                    {
-                      text: "예",
-                      onPress: () => {
-                        Platform.OS === "ios"
-                          ? Linking.openURL(APP_STORE_LINK)
-                          : Linking.openURL(PLAY_STORE_LINK);
-                      }
-                    },
-                    {
-                      text: "아니오",
-                      style: 'cancel',
-                    },
-                  ]
-                );
-                console.log(err);
-              });
-            }}>
-            <Text>네이버지도 App 연결</Text>
-          </TouchableHighlight>
+                console.log(nmapUrl);
+                Linking.openURL(nmapUrl)
+                  .then(supported => {
+                    console.log(supported);
+                  })
+                  .catch(err => {
+                    Alert.alert(
+                      '',
+                      '네이버지도 App이 존재하지 않습니다.\n다운로드받으시겠습니까?',
+                      [
+                        {
+                          text: '예',
+                          onPress: () => {
+                            Platform.OS === 'ios'
+                              ? Linking.openURL(APP_STORE_LINK)
+                              : Linking.openURL(PLAY_STORE_LINK);
+                          },
+                        },
+                        {
+                          text: '아니오',
+                          style: 'cancel',
+                        },
+                      ],
+                    );
+                    console.log(err);
+                  });
+              }}>
+              <Text>네이버지도 App 연결</Text>
+            </TouchableHighlight>
+          )}
           {this.props.item.TELNO && (
             <TouchableHighlight
               style={styles.buttonContainer}
               onPress={() => {
                 let telNo = this.props.item.TELNO.replace(/\D/g, '');
-                Linking.openURL("tel:" + telNo);
+                Linking.openURL('tel:' + telNo);
               }}>
               <Text>매장에 전화걸기</Text>
             </TouchableHighlight>
           )}
 
           <TouchableHighlight
-            style={{ ...styles.openButton, backgroundColor: '#2196F3' }}
+            style={{...styles.openButton, backgroundColor: '#2196F3'}}
             onPress={() => {
               this.props.onClose();
             }}>
             <Text style={styles.textStyle}>닫기</Text>
           </TouchableHighlight>
         </View>
-      </TouchableHighlight >
+      </TouchableHighlight>
     );
   }
 }
