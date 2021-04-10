@@ -1,10 +1,24 @@
-//http://13.209.68.72:32590/getStoreInfo?indutype=%EC%9D%8C%EC%8B%9D%EC%A0%90&conditions=%EC%88%98%EC%9B%90+%ED%8C%94%EB%8B%AC&from=5&limit=209
-
 class AWSApi {
-  constructor() {}
+  constructor() {
+    this.initConnectionInfo();
+  }
+
+  initConnectionInfo = async () => {
+    try {
+      const url =
+        'https://prize1987.github.io/ggmoney_backend/config/config.json';
+      const response = await fetch(url);
+      const text = await response.text();
+      const config = JSON.parse(text);
+
+      this.url = `${config.protocol}://${config.awsip}:${config.awsport}`;
+    } catch (e) {
+      this.url = 'http://13.209.68.72:32590';
+    }
+  };
 
   getStoreInfo = async (sigun, indutype, conditions, from, limit) => {
-    const url = 'http://13.209.68.72:32590/getStoreInfo';
+    const url = `${this.url}/getStoreInfo`;
 
     let fetch_url = url + '?sigun=' + sigun;
     fetch_url += '&indutype=' + indutype;
@@ -20,13 +34,13 @@ class AWSApi {
   };
 
   getStoreInfoCount = async (sigun, indutype, conditions) => {
-    const url = 'http://13.209.68.72:32590/getStoreInfoCount';
+    const url = `${this.url}/getStoreInfoCount`;
 
     let fetch_url = url + '?sigun=' + sigun;
     fetch_url += '&indutype=' + indutype;
     fetch_url += '&conditions=' + conditions.replace(' ', '+');
     // fetch_url += '&SIGUN_NM=' + sigun;
-    console.log(fetch_url);
+
     const response = await fetch(fetch_url);
     const json = await response.json();
 
@@ -43,7 +57,7 @@ class AWSApi {
     lon_ucl,
     limit,
   ) => {
-    const url = 'http://13.209.68.72:32590/getStoreInfoByArea';
+    const url = `${this.url}/getStoreInfoByArea`;
 
     let fetch_url = url + '?sigun=' + sigun;
     fetch_url += '&indutype=' + indutype;
@@ -54,7 +68,6 @@ class AWSApi {
     fetch_url += '&lon_ucl=' + lon_ucl;
     fetch_url += '&limit=' + limit;
 
-    console.log(fetch_url);
     const response = await fetch(fetch_url);
     const json = await response.json();
 

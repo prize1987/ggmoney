@@ -6,19 +6,18 @@ import {
   StyleSheet,
   Text,
   AsyncStorage,
-  Platform,
 } from 'react-native';
 import {Footer, FooterTab, Button, Icon} from 'native-base';
 
 import SearchScreenApi from './Components/APIComponents/SearchScreenApi';
-import SearchScreenDb from './Components/DBComponents/SearchScreenDb';
-import AdScreen from './Components/AdScreen';
-import FirstScreen from './Components/FirstScreen';
-import OptionScreen from './Components/OptionScreen';
-import MapScreenDb from './Components/DBComponents/MapScreenDb';
 import MapScreenApi from './Components/APIComponents/MapScreenApi';
 import SearchScreenAws from './Components/AWSComponents/SearchScreenAws';
 import MapScreenAws from './Components/AWSComponents/MapScreenAws';
+import SearchScreenDb from './Components/DBComponents/SearchScreenDb';
+import MapScreenDb from './Components/DBComponents/MapScreenDb';
+import AdScreen from './Components/AdScreen';
+import OptionScreen from './Components/OptionScreen';
+import FirstScreen from './Components/FirstScreen';
 
 class App extends React.Component {
   state = {
