@@ -62,7 +62,8 @@ class SearchScreenAws extends React.Component {
     this.state.api = new AWSApi();
   }
 
-  componentDidMount() {
+  async componentDidMount() {
+    await this.state.api.initConnectionInfo();
     this.loadLastStatus();
 
     // this.getInitData();

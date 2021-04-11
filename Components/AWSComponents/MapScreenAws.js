@@ -74,7 +74,8 @@ class MapScreenDb extends React.Component {
     this.state.api = new AWSApi();
   }
 
-  componentDidMount() {
+  async componentDidMount() {
+    await this.state.api.initConnectionInfo();
     // this.searchData();
     // console.log(this.props.numToRender);
     AsyncStorage.getItem('mapSearchLimit').then(res => {
@@ -101,7 +102,7 @@ class MapScreenDb extends React.Component {
     }
 
     const isSave = await AsyncStorage.getItem('isSave');
-    const searchCon = await AsyncStorage.getItem('lastSearchCon');
+    let searchCon = await AsyncStorage.getItem('lastSearchCon');
     if (isSave === 'true') {
       if (searchCon === null) {
         searchCon = '';

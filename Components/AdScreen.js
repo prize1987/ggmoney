@@ -1,12 +1,12 @@
 import React from 'react';
-import {Platform, AsyncStorage} from 'react-native';
+import {Platform, AsyncStorage, Alert} from 'react-native';
 import admob, {
   BannerAd,
   BannerAdSize,
   TestIds,
   MaxAdContentRating,
 } from '@react-native-firebase/admob';
-import TrackingTransparency, {
+import {
   getTrackingStatus,
   requestTrackingPermission,
 } from 'react-native-tracking-transparency';
@@ -26,7 +26,7 @@ class AdScreen extends React.Component {
   }
 
   checkTrackingTransparency = async () => {
-    if (TrackingTransparency) {
+    if (Platform.OS === 'ios') {
       const trackingStatus = await getTrackingStatus();
       if (trackingStatus === 'not-determined') {
         const requestStatus = await requestTrackingPermission();

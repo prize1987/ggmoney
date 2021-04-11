@@ -1,7 +1,5 @@
 class AWSApi {
-  constructor() {
-    this.initConnectionInfo();
-  }
+  constructor() {}
 
   initConnectionInfo = async () => {
     try {

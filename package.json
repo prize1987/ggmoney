@@ -13,7 +13,7 @@
     "@react-native-community/cli-platform-ios": "^4.13.0",
     "@react-native-community/geolocation": "^2.0.2",
     "@react-native-firebase/admob": "^7.6.12",
-    "@react-native-firebase/app": "^8.4.7",
+    "@react-native-firebase/app": "^9.0.0",
     "native-base": "^2.13.14",
     "react": "16.11.0",
     "react-native": "^0.62.2",
