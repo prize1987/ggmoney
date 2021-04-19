@@ -150,7 +150,14 @@ class SearchScreenAws extends React.Component {
   }
   async getMoreData() {
     const {numToRender} = this.props;
-    const {indutypeCon, searchCon, data, fetchCnt, api} = this.state;
+    const {
+      indutypeCon,
+      searchCon,
+      data,
+      fetchCnt,
+      api,
+      selectedSiguns,
+    } = this.state;
 
     let recvData = await api.getStoreInfo(
       selectedSiguns,
